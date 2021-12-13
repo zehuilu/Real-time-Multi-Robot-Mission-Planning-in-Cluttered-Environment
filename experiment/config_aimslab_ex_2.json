@@ -1,0 +1,53 @@
+{
+    "QUALISYS": {
+        "IP_MOCAP_SERVER": "192.168.1.122",
+        "IP_STATES_ESTIMATION": "127.0.0.1",
+        "PORT_STATES_ESTIMATION": "9111",
+        "DATA_NUMBERS_STATES_ESTIMATION": "13",
+        "DATA_BYTES_MAX": "6656",
+        "NAME_SINGLE_BODY": "mambo_02",
+        "PORT_POSITION_PLANNER": "9161",
+
+        "NAME_OBSTACLE": "obs_01",
+        "IP_OBS_POSITION": "127.0.0.1",
+        "PORT_OBS_POSITION": "11000"
+    },
+
+    "MAMBO": {
+        "BLUETOOTH_ADDRESS": "D0:3A:30:60:E6:24",
+        "TILT_MAX": "25.0",
+        "VERTICAL_SPEED_MAX": "2.0",
+        "YAW_RATE_MAX": "3.14"
+    },
+
+    "LOW_LEVEL_CONTROLLER": {
+        "YAW_DES": "0.0",
+        "TIME_LOOK_AHEAD": "0.2",
+        "TIME_STEP": "0.1",
+
+        "FWDFEED_HEIGHT": "0.0",
+        "KP_HEIGHT": "20.0",
+        "KI_HEIGHT": "0.0",
+        "KD_HEIGHT": "2.0",
+
+        "FWDFEED_PITCH": "0.0",
+        "KP_PITCH": "18.0",
+        "KI_PITCH": "0.0",
+        "KD_PITCH": "8.0",
+
+        "FWDFEED_ROLL": "0.0",
+        "KP_ROLL": "22.0",
+        "KI_ROLL": "0.0",
+        "KD_ROLL": "5.0",
+
+        "FWDFEED_YAW": "15.0",
+        "KP_YAW": "25.0",
+        "KI_YAW": "0.0",
+        "KD_YAW": "0.0"
+    },
+
+    "FLAG_DELETE_CSV_BEGIN": 1,
+    "FLAG_PLOT": 0,
+    "DIRECTORY_SYSID": "/sysid_data/",
+    "DIRECTORY_TRAJ": "/scripts_aimslab/traj_csv_files/mambo_02/"
+}

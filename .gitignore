@@ -1,0 +1,14 @@
+*.asv
+*.DS_Store
+*.o
+/.vscode/*
+/.idea/*
+/build/*
+/src/__pycache__/*
+/test/__pycache__/*
+/comparison/__pycache__/*
+/externals/Lazy-Theta-with-optimization-any-angle-pathfinding/build/**
+/externals/CBBA-Python/lib/__pycache__/*
+/experiment/lib/__pycache__/*
+/experiment/scripts/__pycache__/*
+/example/__pycache__/*

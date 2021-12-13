@@ -1,0 +1,6 @@
+[submodule "externals/Lazy-Theta-with-optimization-any-angle-pathfinding"]
+	path = externals/Lazy-Theta-with-optimization-any-angle-pathfinding
+	url = https://github.com/zehuilu/Lazy-Theta-with-optimization-any-angle-pathfinding.git
+[submodule "externals/CBBA-Python"]
+	path = externals/CBBA-Python
+	url = https://github.com/zehuilu/CBBA-Python.git

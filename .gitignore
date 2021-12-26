@@ -12,3 +12,4 @@
 /experiment/lib/__pycache__/*
 /experiment/scripts/__pycache__/*
 /example/__pycache__/*
+*.exe

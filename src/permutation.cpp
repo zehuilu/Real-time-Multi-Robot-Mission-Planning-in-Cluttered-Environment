@@ -122,9 +122,12 @@ inline void permutation_order_task(agent *head, int task_index[], int size, int 
 
         agent *agent_ptr = head;
         int index = 0;
+        // assign values to each node
         while (agent_ptr != NULL) {
+            // go through agents
             task *task_ptr = agent_ptr->next_task;
             while (task_ptr != NULL) {
+                // go through tasks
                 task_ptr->task_index = task_index[index];
                 index++;
                 task_ptr = task_ptr->next_task;
@@ -132,10 +135,13 @@ inline void permutation_order_task(agent *head, int task_index[], int size, int 
             agent_ptr = agent_ptr->next_agent;
         }
         agent_ptr = head;
+        // add code in this loop to run for each case
         while (agent_ptr != NULL) {
+            // for each agent
             std::cout << "Agent" << agent_ptr->agent_index + 1 << ": ";
             task *task_ptr = agent_ptr->next_task;
             while (task_ptr != NULL) {
+                // for each task
                 std::cout << task_ptr->task_index << "->";
                 task_ptr = task_ptr->next_task;
             }
@@ -208,6 +214,11 @@ inline void permutation_num_task(agent *head, int num_agent, int num_task) {
     std::cout << "Total combination without ordering = " << total_case_assign_num_task << "\n";
     std::cout << "Total cases = " << case_count;
     
+}
+
+void BaseLine(int agent_position[], int targets_position[], int map[], int mapSizeX, int mapSizeY) {
+
+
 }
 
 int main() {

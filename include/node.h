@@ -38,6 +38,6 @@ void permutation_num_task(agent *head, int num_agent, int num_task);
 
 // DrMaMP.py MissionPlanning()
 // return case, cost
-void BaseLine(int agent_position[], int targets_position[], int map[]);
+void BaseLine(int agent_position[], int targets_position[], int map[], int mapSizeX, int mapSizeY);
 
 // call functions FindPath() to get cost

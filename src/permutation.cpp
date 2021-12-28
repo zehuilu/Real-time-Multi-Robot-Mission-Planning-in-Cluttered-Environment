@@ -4,21 +4,25 @@
 
 int case_count = 0;
 
-inline agent *initialize(int num_agent, int num_task) {
+inline agent *initialize(int num_agent, int num_task, int agent_position[]) {
     // initialize first agent
     agent *head = (agent*)malloc(sizeof(agent));
-    head->agent_index = 0;
+    head->agent_index = 1;
     head->num_task = num_task;
     head->prev_agent = NULL;
     head->next_agent = NULL;
     head->next_task = NULL;
+    head->position[0] = agent_position[0];
+    head->position[1] = agent_position[1];
 
     agent *this_agent = head;
     // initialize rest of agents
     for (int i = 1; i < num_agent; i++) {
         agent *temp = (agent*)malloc(sizeof(agent));
-        temp->agent_index = i;
+        temp->agent_index = i+1;
         temp->num_task = 0;
+        temp->position[0] = agent_position[2*i];
+        temp->position[1] = agent_position[2*i+1];
         this_agent->next_agent = temp;
         temp->prev_agent = this_agent;
         temp->next_agent = NULL;
@@ -45,6 +49,24 @@ inline agent *initialize(int num_agent, int num_task) {
         task_ptr = task_ptr->next_task;   
     }
     return head;
+}
+
+task_list *initialize_tast(int num_task, int targets_position[]) {
+    task_list *task_head = (task_list*)malloc(sizeof(task_list));
+    task_head->position[0] = targets_position[0];
+    task_head->position[1] = targets_position[1];
+    task_head->next_task = NULL;
+
+    task_list *this_task = task_head;
+    for (int i = 1; i < num_task; i++) {
+        task_list *temp = (task_list*)malloc(sizeof(task_list));
+        temp->position[0] = targets_position[2*i];
+        temp->position[1] = targets_position[2*i+1];
+        this_task->next_task = temp;
+        this_task = this_task->next_task;
+    }
+
+    return task_head;
 }
 
 
@@ -116,7 +138,7 @@ inline void move_all_task_back(agent *agent_ptr) {
     }
 }
 
-inline void permutation_order_task(agent *head, int task_index[], int size, int num_task) {
+inline void permutation_order_task(agent *head, int task_index[], int size, int num_task, int targets_position[]) {
     if (size == 1) {
         case_count++;
 
@@ -129,16 +151,19 @@ inline void permutation_order_task(agent *head, int task_index[], int size, int 
             while (task_ptr != NULL) {
                 // go through tasks
                 task_ptr->task_index = task_index[index];
+                task_ptr->position[0] = targets_position[2*(task_index[index]-1)];
+                task_ptr->position[1] = targets_position[2*task_index[index]-1];
                 index++;
                 task_ptr = task_ptr->next_task;
             }
             agent_ptr = agent_ptr->next_agent;
         }
-        agent_ptr = head;
         // add code in this loop to run for each case
+        // to print results in task index
+        agent_ptr = head;
         while (agent_ptr != NULL) {
             // for each agent
-            std::cout << "Agent" << agent_ptr->agent_index + 1 << ": ";
+            std::cout << "Agent" << agent_ptr->agent_index << ": ";
             task *task_ptr = agent_ptr->next_task;
             while (task_ptr != NULL) {
                 // for each task
@@ -149,11 +174,26 @@ inline void permutation_order_task(agent *head, int task_index[], int size, int 
             agent_ptr = agent_ptr->next_agent;
         }
         std::cout << "\n";
+        // to print results in task location
+        agent_ptr = head;
+        while (agent_ptr != NULL) {
+            // for each agent
+            std::cout << "Agent" << agent_ptr->agent_index << ": ";
+            task *task_ptr = agent_ptr->next_task;
+            while (task_ptr != NULL) {
+                // for each task
+                std::cout << task_ptr->position[0] << "," << task_ptr->position[1] << "->";
+                task_ptr = task_ptr->next_task;
+            }
+            std::cout << "end!   ";
+            agent_ptr = agent_ptr->next_agent;
+        }
+        std::cout << "\n";
         return;
     }
 
     for (int i = 0; i < size; i++) {
-        permutation_order_task(head, task_index, size - 1, num_task);
+        permutation_order_task(head, task_index, size - 1, num_task, targets_position);
     
         if (size % 2 == 1) {
             int temp = task_index[0];
@@ -170,7 +210,7 @@ inline void permutation_order_task(agent *head, int task_index[], int size, int 
 
 }
 
-inline void permutation_num_task(agent *head, int num_agent, int num_task) {
+inline void permutation_num_task(agent *head, int num_agent, int num_task, int targets_position[]) {
     agent *agent_ptr = head;
     agent *tail = head;
     while (tail->next_agent != NULL) {
@@ -186,14 +226,14 @@ inline void permutation_num_task(agent *head, int num_agent, int num_task) {
         // move one task to tail
         while (agent_ptr->next_agent != NULL) {
             print_task_number(head);
-            permutation_order_task(head, task_index, num_task, num_task);
+            permutation_order_task(head, task_index, num_task, num_task, targets_position);
             total_case_assign_num_task++;
             move_one_task_to_next_agent(agent_ptr);
             agent_ptr = agent_ptr->next_agent;
         }
         // for last one
         print_task_number(head);
-        permutation_order_task(head, task_index, num_task, num_task);
+        permutation_order_task(head, task_index, num_task, num_task, targets_position);
         total_case_assign_num_task++;
         // stop consition
         if (tail->num_task == num_task) {
@@ -216,15 +256,22 @@ inline void permutation_num_task(agent *head, int num_agent, int num_task) {
     
 }
 
-void BaseLine(int agent_position[], int targets_position[], int map[], int mapSizeX, int mapSizeY) {
-
-
-}
+// void BaseLine(int agent_position[], int targets_position[], int map[], int mapSizeX, int mapSizeY) {
+//     int num_agent = sizeof(agent_position)/sizeof(agent_position[0]) / 2;
+//     int num_task = sizeof(targets_position)/sizeof(targets_position[0]) / 2;
+//     agent *head = initialize(num_agent, num_task, agent_position);
+//     permutation_num_task(head, num_agent, num_task);
+// }
 
 int main() {
-    int num_agent = 5;
-    int num_task = 5;
-    agent *head = initialize(num_agent, num_task);
-    permutation_num_task(head, num_agent, num_task);
+    // int num_agent = 5;
+    // int num_task = 5;
+    int agent_position[] = {1,1,1,2,1,3};
+    int targets_position[] = {2,3,4,5,6,7};
+    int num_agent = sizeof(agent_position)/sizeof(agent_position[0]) / 2;
+    int num_task = sizeof(targets_position)/sizeof(targets_position[0]) / 2;
+    agent *head = initialize(num_agent, num_task, agent_position);
+    task_list *task_head = initialize_tast(num_task, targets_position);
+    permutation_num_task(head, num_agent, num_task, targets_position);
     return 0;
 }

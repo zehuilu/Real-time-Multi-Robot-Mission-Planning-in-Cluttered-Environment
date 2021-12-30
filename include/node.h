@@ -2,6 +2,7 @@
  * Define nodes
  *==============
  */
+#include <vector>
 typedef struct task
 {
     int task_index;
@@ -39,8 +40,8 @@ task_list *initialize_tast(int num_task, int targets_position[]);
 void print_task_number(agent *head);
 void move_one_task_to_next_agent(agent *this_agent);
 void move_all_task_back(agent *this_agent);
-void permutation_order_task(agent *head, int task_index, int size, int num_task, int targets_position[]);
-void permutation_num_task(agent *head, int num_agent, int num_task, int targets_position[]);
+int* permutation_order_task(agent *head, int task_index, int size, int num_task, int targets_position[], std::vector<int> map, int mapSizeX, int mapSizeY, int solution[]);
+int* permutation_num_task(agent *head, int num_agent, int num_task, int targets_position[], std::vector<int> map, int mapSizeX, int mapSizeY,  int solution[]);
 
 
 // DrMaMP.py MissionPlanning()

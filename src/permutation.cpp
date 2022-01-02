@@ -201,7 +201,7 @@ inline int* permutation_order_task(agent *head, int task_index[], int size, int 
                     task_index++;
                 }
                 for (int i = task_index; i < num_task; i++) {
-                    solution[agent_index*num_task+task_index] = 0;
+                    solution[agent_index*num_task+i] = 0;
                 }
 
                 agent_ptr = agent_ptr->next_agent;
@@ -331,7 +331,7 @@ int main() {
     // int num_agent = 5;
     // int num_task = 5;
     int agent_position[] = {1,1,1,2,1,3};
-    int targets_position[] = {2,1,2,3,1,4};
+    int targets_position[] = {2,1,2,3,1,4,7,7};
     const int num_agent = sizeof(agent_position)/sizeof(agent_position[0]) / 2;
     const int num_task = sizeof(targets_position)/sizeof(targets_position[0]) / 2;
     std::vector<int> map;

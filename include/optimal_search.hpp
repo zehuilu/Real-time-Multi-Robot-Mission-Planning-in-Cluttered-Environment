@@ -1,13 +1,44 @@
+#ifndef OPTIMAL_SEARCH_HPP
+#define OPTIMAL_SEARCH_HPP
+
 #include <stdio.h>
 #include <iostream>
 #include <tuple>
-#include "../include/node.h"
+#include <vector>
 #include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/find_path.hpp"
 
-int case_count = 0;
-float min_cost = 9999;
+int _CASE_COUNT = 0;
+float _MIN_COST = 1E6;
 
-inline agent *initialize(int num_agent, int num_task, int agent_position[]) {
+typedef struct task
+{
+    int task_index;
+    size_t position[2];
+    task *prev_task;
+    task *next_task;
+    task *next_in_list;
+
+} task;
+
+typedef struct agent
+{
+    int agent_index;
+    size_t position[2];
+    int num_task;
+    agent *prev_agent;
+    agent *next_agent;
+    task *next_task; 
+    
+} agent;
+
+typedef struct task_list
+{
+    size_t position[2];
+    task_list *next_task;
+} task_list;
+
+inline agent *initialize(const int& num_agent, const int& num_task, int agent_position[])
+{
     // initialize first agent
     agent *head = (agent*)malloc(sizeof(agent));
     head->agent_index = 1;
@@ -49,12 +80,13 @@ inline agent *initialize(int num_agent, int num_task, int agent_position[]) {
         temp->prev_task = task_ptr;
         temp->next_task = NULL;
         temp->next_in_list = NULL;
-        task_ptr = task_ptr->next_task;   
+        task_ptr = task_ptr->next_task;
     }
     return head;
 }
 
-task_list *initialize_tast(int num_task, int targets_position[]) {
+inline task_list *initialize_task(const int& num_task, int targets_position[])
+{
     task_list *task_head = (task_list*)malloc(sizeof(task_list));
     task_head->position[0] = targets_position[0];
     task_head->position[1] = targets_position[1];
@@ -73,7 +105,8 @@ task_list *initialize_tast(int num_task, int targets_position[]) {
 }
 
 
-inline void print_task_number(agent *head) {
+inline void print_task_number(agent *head)
+{
     agent *agent_ptr = head;
     while (agent_ptr != NULL) {
         int num_task = 0;
@@ -89,7 +122,8 @@ inline void print_task_number(agent *head) {
     // std::cout << "\n";
 }
 
-inline void move_one_task_to_next_agent(agent *agent_ptr) {
+inline void move_one_task_to_next_agent(agent *agent_ptr)
+{
     task *task_to_move = agent_ptr->next_task;
     // only one task, set agent task to NULL
     if (task_to_move->next_task == NULL) {
@@ -127,7 +161,8 @@ inline void move_one_task_to_next_agent(agent *agent_ptr) {
     agent_ptr->next_agent->num_task++;
 }
 
-inline void move_all_task_back(agent *agent_ptr) {
+inline void move_all_task_back(agent *agent_ptr)
+{
     agent *place_to_move = agent_ptr;
     while (place_to_move->prev_agent->next_task == NULL) {
         place_to_move = place_to_move->prev_agent;
@@ -141,9 +176,11 @@ inline void move_all_task_back(agent *agent_ptr) {
     }
 }
 
-inline int* permutation_order_task(agent *head, int task_index[], int size, int num_task, int targets_position[], std::vector<int> map, int mapSizeX, int mapSizeY, int solution[]) {
+inline int* permutation_order_task(agent *head, int task_index[], int size, int num_task, int targets_position[],
+                                   const std::vector<int>& map, const int& mapSizeX, const int& mapSizeY, int solution[])
+{
     if (size == 1) {
-        case_count++;
+        _CASE_COUNT++;
 
         agent *agent_ptr = head;
         int index = 0;
@@ -186,8 +223,8 @@ inline int* permutation_order_task(agent *head, int task_index[], int size, int 
 
             agent_ptr = agent_ptr->next_agent;
         }
-        if (cost < min_cost) {
-            min_cost = cost;
+        if (cost < _MIN_COST) {
+            _MIN_COST = cost;
             agent_ptr = head;
             int agent_index = 0;
             while (agent_ptr != NULL) {
@@ -201,7 +238,7 @@ inline int* permutation_order_task(agent *head, int task_index[], int size, int 
                     task_index++;
                 }
                 for (int i = task_index; i < num_task; i++) {
-                    solution[agent_index*num_task+i] = 0;
+                    solution[agent_index*num_task+i] = -1;
                 }
 
                 agent_ptr = agent_ptr->next_agent;
@@ -259,17 +296,22 @@ inline int* permutation_order_task(agent *head, int task_index[], int size, int 
     return solution;
 }
 
-inline int* permutation_num_task(agent *head, int num_agent, int num_task, int targets_position[], std::vector<int> map, int mapSizeX, int mapSizeY, int solution[]) {
+inline int* permutation_num_task(agent *head, int num_agent, int num_task, int targets_position[],
+                                 const std::vector<int>& map, const int& mapSizeX, const int& mapSizeY, int solution[])
+{
     agent *agent_ptr = head;
     agent *tail = head;
     while (tail->next_agent != NULL) {
         tail = tail->next_agent;
     }
     int total_case_assign_num_task = 0;
-    int task_index[num_task] = {};
+
+    // int task_index[num_task] = {};
+    std::vector<int> task_index_vec(num_task);
     for (int i = 0; i < num_task; i++) {
-        task_index[i] = i + 1;
+        task_index_vec[i] = i + 1;
     }
+    int* task_index = task_index_vec.data();
 
     while (true) {
         // move one task to tail
@@ -300,63 +342,10 @@ inline int* permutation_num_task(agent *head, int num_agent, int num_task, int t
         agent_ptr = agent_ptr->next_agent;
     }
 
-    std::cout << "Total combination without ordering = " << total_case_assign_num_task << "\n";
-    std::cout << "Total cases = " << case_count << "\n";
+    // std::cout << "Total combination without ordering = " << total_case_assign_num_task << "\n";
+    // std::cout << "Total cases = " << _CASE_COUNT << "\n";
     return solution;
     
 }
 
-// void BaseLine(int agent_position[], int targets_position[], int map[], int mapSizeX, int mapSizeY) {
-//     const int num_agent = sizeof(agent_position)/sizeof(agent_position[0]) / 2;
-//     const int num_task = sizeof(targets_position)/sizeof(targets_position[0]) / 2;
-//     min_cost = num_agent*mapSizeX*mapSizeY;
-//     agent *head = initialize(num_agent, num_task, agent_position);
-//     task_list *task_head = initialize_tast(num_task, targets_position);
-//     int start_case[num_agent*num_task] = {0};
-//     int *solution = permutation_num_task(head, num_agent, num_task, targets_position, map, mapSizeX, mapSizeY, start_case);
-    // std::cout << "Minimum cost = " << min_cost << "\n";
-    // std::cout << "Path \n";
-    // for (int i = 0; i < num_agent; i++) {
-    //     std::cout << "Agent " << i+1 << ":";
-    //     for (int j = 0; j < num_task; j++) {
-    //         if (solution[i*num_task+j] != 0) {
-    //         std::cout << " -> " << solution[i*num_task+j];
-    //         }   
-    //     }
-    //     std::cout << "\n";
-    // }
-// }
-
-int main() {
-    // int num_agent = 5;
-    // int num_task = 5;
-    int agent_position[] = {1,1,1,2,1,3};
-    int targets_position[] = {2,1,2,3,1,4,7,7};
-    const int num_agent = sizeof(agent_position)/sizeof(agent_position[0]) / 2;
-    const int num_task = sizeof(targets_position)/sizeof(targets_position[0]) / 2;
-    std::vector<int> map;
-    int mapSizeX = 10;
-    int mapSizeY = 10;
-    for (int i = 0; i < mapSizeX*mapSizeY; i++) {
-        map.push_back(0);
-    }
-    min_cost = num_agent*mapSizeX*mapSizeY;
-    agent *head = initialize(num_agent, num_task, agent_position);
-    task_list *task_head = initialize_tast(num_task, targets_position);
-    int start_case[num_agent*num_task] = {0};
-    int *solution = permutation_num_task(head, num_agent, num_task, targets_position, map, mapSizeX, mapSizeY, start_case);
-
-    std::cout << "Minimum cost = " << min_cost << "\n";
-    std::cout << "Path \n";
-    for (int i = 0; i < num_agent; i++) {
-        std::cout << "Agent " << i+1 << ":";
-        for (int j = 0; j < num_task; j++) {
-            if (solution[i*num_task+j] != 0) {
-            std::cout << " -> " << solution[i*num_task+j];
-            }   
-        }
-        std::cout << "\n";
-    }
-
-    return 0;
-}
+#endif

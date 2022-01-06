@@ -29,7 +29,7 @@
 
 using namespace operations_research;
 constexpr int SCALE_FACTOR = 100; // to scale the distance matrix for solving TSP
-
+static constexpr float WEIGHT_PATH = 1E2; // weight for path finder
 
 /*
 PrintSolution: Print the solution of traveling salesman problem via or-tools on console.
@@ -102,7 +102,7 @@ inline std::tuple<std::vector<std::vector<int>>, std::vector<float>> FindPathOne
     Vectori mapSize(mapSizeX, mapSizeY);
     TileAdaptor adaptor(mapSize, Map);
     // This is a bit of an exageration here for the weight, but it did make my performance test go from 8s to 2s
-    Pathfinder pathfinder(adaptor, 100.f /*weight*/);
+    Pathfinder pathfinder(adaptor, WEIGHT_PATH);
 
     if (targets_position.size() > 0) {
         // start is agent_position, goal is the first two elements of targets_position, doing the search
@@ -171,7 +171,7 @@ inline std::tuple<std::vector<std::vector<int>>, std::vector<float>> FindPathMan
     Vectori mapSize(mapSizeX, mapSizeY);
     TileAdaptor adaptor(mapSize, Map);
     // This is a bit of an exageration here for the weight, but it did make my performance test go from 8s to 2s
-    Pathfinder pathfinder(adaptor, 100.f /*weight*/);
+    Pathfinder pathfinder(adaptor, WEIGHT_PATH);
 
     for (size_t idx = 0; idx < start_goal_pair.size(); idx = idx + 2) {
         int start_idx = start_goal_pair[idx];
@@ -240,7 +240,7 @@ inline std::tuple<std::vector<int>, float> FindPath(
     TileAdaptor adaptor(mapSize, Map);
     
     // This is a bit of an exageration here for the weight, but it did make my performance test go from 8s to 2s
-    Pathfinder pathfinder(adaptor, 100.f /*weight*/);
+    Pathfinder pathfinder(adaptor, WEIGHT_PATH);
 
     // The map was edited so we need to regenerate teh neighbors
     // pathfinder.generateNodes();
@@ -409,7 +409,7 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > SolveOne
     Vectori mapSize(mapSizeX, mapSizeY);
     TileAdaptor adaptor(mapSize, Map);
     // This is a bit of an exageration here for the weight, but it did make my performance test go from 8s to 2s
-    Pathfinder pathfinder(adaptor, 100.f /*weight*/);
+    Pathfinder pathfinder(adaptor, WEIGHT_PATH);
 
     for (size_t idx = 0; idx < start_goal_pair.size(); idx = idx + 2) {
         int start_idx = start_goal_pair[idx];
@@ -800,7 +800,7 @@ inline std::vector<std::vector<int>> path_planning_one_agent_many_tasks(
         // Instantiating the path adaptor, passing the map size, and the map
         Vectori mapSize(mapSizeX, mapSizeY);
         TileAdaptor adaptor(mapSize, MapNew);
-        Pathfinder pathfinder(adaptor, 100.f /*weight*/);
+        Pathfinder pathfinder(adaptor, WEIGHT_PATH);
         // find the path, returned by std::tuple<std::vector<int>, float>
         auto [path, distance] = pathfinder.search(startPoint[1]*mapSizeX+startPoint[0], endPoint[1]*mapSizeX+endPoint[0], mapSize);
 

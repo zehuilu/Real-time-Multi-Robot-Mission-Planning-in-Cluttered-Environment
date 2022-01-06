@@ -51,7 +51,7 @@ if __name__ == "__main__":
     num_iter = 300
 
     t0 = time.time()
-    [means, assignments, points_idx_for_clusters] = DrMaMP.KMeans(targets_position, num_cluster, num_iter)
+    [means, assignments, points_idx_for_clusters, sum_distance_vec] = DrMaMP.KMeans(targets_position, num_cluster, num_iter)
     
     t1 = time.time()
     print("Time used [sec]:" + str(t1 - t0))
@@ -69,3 +69,6 @@ if __name__ == "__main__":
         print("This is a cluster.")
         for j in range(0,len(points_idx_for_clusters[i]),1):
             print(points_idx_for_clusters[i][j])
+
+    print("sum_distance_vec")
+    print(sum_distance_vec)

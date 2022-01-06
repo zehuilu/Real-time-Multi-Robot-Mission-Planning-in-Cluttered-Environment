@@ -15,7 +15,7 @@ inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vec
 }
 
 
-inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vector<size_t>> > KMeansWPP(
+inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vector<size_t>>, std::vector<float> > KMeansWPP(
     const std::vector<float>& data,
     const size_t& k,
     const size_t& number_of_iterations)

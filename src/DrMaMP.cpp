@@ -256,7 +256,7 @@ inline std::tuple<std::vector<int>, float> FindPath(
 }
 
 
-inline std::tuple<std::vector<float>, std::vector<size_t>, std::vector<std::vector<size_t>>> KMeans(
+inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vector<size_t>>, std::vector<float> > KMeans(
     std::vector<int>& targets_position,
     const size_t& num_cluster,
     const size_t& number_of_iterations)
@@ -275,7 +275,7 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
     // convert raw target positions to Points
     std::vector<float> targets_position_float(targets_position.begin(), targets_position.end());
     // K-means clustering
-    auto [cluster_centers, assignments, points_idx_for_clusters] = k_means_with_plus_plus(targets_position_float, num_cluster, number_of_iterations);
+    auto [cluster_centers, assignments, points_idx_for_clusters, sum_distance_vec] = k_means_with_plus_plus(targets_position_float, num_cluster, number_of_iterations);
     size_t num_agents = agent_position.size()/2;
 
     // Solver
@@ -302,9 +302,15 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
             // for constraints
             cluster_sum += x[i][j];
 
-            // here estimate the distance by l1 norm
-            float cost = 1 * (abs( static_cast<float>(agent_position[2*j]) - cluster_centers[2*i] ) + 
-                abs( static_cast<float>(agent_position[2*j+1]) - cluster_centers[2*i+1] ));
+            // distance btw a cluster centroid and an agent plus the summation of distance btw this centroid and its associated points
+            float cost = std::sqrt(std::pow(static_cast<float>(agent_position[2*j])-cluster_centers[2*i], 2) + 
+                                   std::pow(static_cast<float>(agent_position[2*j+1])-cluster_centers[2*i+1], 2)) + 
+                         sum_distance_vec[i];
+
+
+            // // here estimate the distance by l1 norm
+            // float cost = 1 * (abs( static_cast<float>(agent_position[2*j]) - cluster_centers[2*i] ) + 
+            //     abs( static_cast<float>(agent_position[2*j+1]) - cluster_centers[2*i+1] ));
 
             // for the objective function
             objective->SetCoefficient(x[i][j], cost);

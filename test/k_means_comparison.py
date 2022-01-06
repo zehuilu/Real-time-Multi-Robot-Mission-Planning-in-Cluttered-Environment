@@ -2,7 +2,8 @@
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-import sklearn
+import sklearn.datasets
+import sklearn.cluster
 import scipy.cluster.vq
 import pathmagic
 with pathmagic.context():
@@ -28,7 +29,7 @@ print(means_cpp_random)
 
 # run K-means c++ library with K-means++
 t0 = time.time()
-means_cpp, assignments, points_idx_for_clusters = K_MEANS.KMeansWPP(data.flatten(), num_cluster, number_of_iterations)
+means_cpp, assignments, points_idx_for_clusters, sum_distance_vec = K_MEANS.KMeansWPP(data.flatten(), num_cluster, number_of_iterations)
 t1 = time.time()
 means_cpp = np.array(means_cpp).reshape(-1, 2)
 print("cpp time with K-means++ [sec]: " + str(t1-t0))
@@ -63,6 +64,9 @@ plt.figure(2)
 plt.scatter(data[:, 0], data[:, 1], c=labels)
 plt.scatter(means_cpp[:, 0], means_cpp[:, 1], linewidths=2, color='red')
 plt.title("c++ with K-means++")
+
+print("sum_distance_vec")
+print(sum_distance_vec)
 
 # scipy
 plt.figure(3)

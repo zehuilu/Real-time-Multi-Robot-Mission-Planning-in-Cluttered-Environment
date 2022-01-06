@@ -10,11 +10,12 @@
 #include <random>
 #include <vector>
 #include <tuple>
+#include <cmath>
 #include "k_means_plus_plus.hpp"
 
 
 // template <typename T> 
-inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vector<size_t>> > k_means_with_plus_plus(
+inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vector<size_t>>, std::vector<float> > k_means_with_plus_plus(
     const std::vector<float>& data,
     const size_t& k,
     const size_t& number_of_iterations)
@@ -67,7 +68,18 @@ inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vec
         points_idx_for_clusters[assignments[idx_data]].push_back(idx_data);
     }
 
-    return {means, assignments, points_idx_for_clusters};
+    // create a 1D vector, each element is the summation of distance between a cluster centroid and its associated points
+    std::vector<float> sum_distance_vec(k, 0.0);
+    for (size_t cluster = 0; cluster < k; ++cluster) {
+        for (size_t idx = 0; idx < points_idx_for_clusters[cluster].size(); ++idx) {
+            size_t pt_idx = points_idx_for_clusters[cluster][idx];
+            float this_distance = std::sqrt(((data[2*pt_idx]-means[2*cluster]) * (data[2*pt_idx]-means[2*cluster]) + 
+                                            (data[2*pt_idx+1]-means[2*cluster+1]) * (data[2*pt_idx+1]-means[2*cluster+1])));
+            sum_distance_vec[cluster] = sum_distance_vec[cluster] + this_distance;
+        }
+    }
+
+    return {means, assignments, points_idx_for_clusters, sum_distance_vec};
 }
 
 

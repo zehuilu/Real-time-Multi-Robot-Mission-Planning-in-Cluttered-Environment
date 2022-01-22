@@ -18,20 +18,20 @@ if __name__ == "__main__":
     # create a simulator
     MySimulator = Simulator(map_width_meter, map_height_meter, map_resolution, value_non_obs, value_obs)
     # number of obstacles
-    num_obs = 250
+    num_obs = 200
     # [width, length] size of each obstacle [meter]
     size_obs = [1, 1]
     # generate random obstacles
     MySimulator.generate_random_obs(num_obs, size_obs)
     # randomly generate agents and targets
-    num_agents = 3
-    num_targets = 12
+    num_agents = 5
+    num_targets = 25
     agents_position, targets_position = MySimulator.generate_agents_and_targets(num_agents, num_targets)
 
     # number of clusters for task decomposition
     num_cluster = num_agents
     # number of iterations for task decomposition
-    number_of_iterations = 200
+    number_of_iterations = 300
 
     # average agent velocity in cells
     agent_velocity_ave = [random.randint(4,8) for i in range(num_agents)]

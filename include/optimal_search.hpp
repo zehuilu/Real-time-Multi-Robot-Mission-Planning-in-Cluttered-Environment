@@ -326,7 +326,7 @@ inline int* permutation_num_task(agent *head, int num_agent, int num_task, int t
         print_task_number(head);
         solution = permutation_order_task(head, task_index, num_task, num_task, targets_position, map, mapSizeX, mapSizeY, solution);
         total_case_assign_num_task++;
-        // stop consition
+        // stop condition
         if (tail->num_task == num_task) {
             break;
         }

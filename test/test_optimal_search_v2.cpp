@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "optimal_search.hpp"
+#include "optimal_search_v2.hpp"
 
 
 int main() {
@@ -16,10 +16,11 @@ int main() {
     }
     agent *head = initialize(num_agent, num_task, agent_position);
     task_list *task_head = initialize_task(num_task, targets_position);
+    // initialize the solution array and cost
     int solution[num_agent * num_task] = {-1};
     float cost = permutation_num_task(head, num_agent, num_task, targets_position, map, mapSizeX, mapSizeY, solution);
 
-    std::cout << "Minimum cost = " << cost << "\n";
+    std::cout << "(v2) Minimum cost = " << cost << "\n";
     std::cout << "Index of agent and task starts from 0 \n";
     std::cout << "Path \n";
     for (int i = 0; i < num_agent; i++) {

@@ -2,13 +2,13 @@
 #include <vector>
 #include <iterator>
 #include <tuple>
-#include "optimal_search.hpp"
+#include "optimal_search_v2.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 /*
-Main function for Optimal Search.
+Main function for Optimal Search v2, every agent at least has one task
 */
 inline std::tuple< std::vector<std::vector<int>>, float > OptimalSearch(
     std::vector<int>& agent_position,
@@ -27,7 +27,7 @@ inline std::tuple< std::vector<std::vector<int>>, float > OptimalSearch(
     task_list *task_head = initialize_task(num_task, targets_position_array);
 
     std::vector<int> start_case_vec(num_agent * num_task, -1);
-    int *solution = start_case_vec.data(); 
+    int *solution = start_case_vec.data();
     float cost = permutation_num_task(head, num_agent, num_task, targets_position_array, Map, mapSizeX, mapSizeY, solution);
 
     // each sub-vector is the indices of the assigned tasks, where the order is the execution order
@@ -47,7 +47,7 @@ inline std::tuple< std::vector<std::vector<int>>, float > OptimalSearch(
 }
 
 
-inline PYBIND11_MODULE(OptimalSearch, module) {
+inline PYBIND11_MODULE(OptimalSearchV2, module) {
     module.doc() = "Python wrapper of Optimal Search";
 
     module.def("OptimalSearch", &OptimalSearch, "Search the optimal solution for multi-agent mission planning");

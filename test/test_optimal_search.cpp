@@ -14,12 +14,10 @@ int main() {
     for (int i = 0; i < mapSizeX * mapSizeY; i++) {
         map.push_back(0);
     }
-    agent *head = initialize(num_agent, num_task, agent_position);
-    task_list *task_head = initialize_task(num_task, targets_position);
-    int start_case[num_agent * num_task] = {-1};
-    int *solution = permutation_num_task(head, num_agent, num_task, targets_position, map, mapSizeX, mapSizeY, start_case);
+    int solution[num_agent * num_task] = {-1};
+    float cost = permutation_num_task(num_agent, num_task, agent_position, targets_position, map, mapSizeX, mapSizeY, solution);
 
-    std::cout << "Minimum cost = " << _MIN_COST << "\n";
+    std::cout << "Minimum cost = " << cost << "\n";
     std::cout << "Index of agent and task starts from 0 \n";
     std::cout << "Path \n";
     for (int i = 0; i < num_agent; i++) {
@@ -29,9 +27,6 @@ int main() {
         }
         std::cout << "\n";
     }
-    
-    free(head);
-    free(task_head);
 
     return 0;
 }

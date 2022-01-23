@@ -75,7 +75,8 @@ if __name__ == "__main__":
             time_used_my = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_my.append(time_used_my)
             this_distance_my, distance_list_my = compute_path_distance_many_agents(path_all_agents_my)
-            distance_list_single_case_my.append(max(distance_list_my))
+
+            distance_list_single_case_my.append(this_distance_my)
 
             # CBBA
             if run_cbba_flag:
@@ -87,7 +88,7 @@ if __name__ == "__main__":
                 time_used_cbba = (t1 - t0) * 1000.0  # in millisecond
                 time_used_list_single_case_cbba.append(time_used_cbba)
                 this_distance_cbba, distance_list_cbba = compute_path_distance_many_agents(path_all_agents_cbba)
-                distance_list_single_case_cbba.append(max(distance_list_cbba))
+                distance_list_single_case_cbba.append(this_distance_cbba)
 
             # optimal search
             t0 = time.time()

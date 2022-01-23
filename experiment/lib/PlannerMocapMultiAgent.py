@@ -318,7 +318,7 @@ class PlannerMocapMultiAgent:
         return targets_position_index_2d
 
     def targets_transform_ordered(self, targets_position_3d: list):
-        """targets_transform_ordered
+        """
         Transform a 3D targets positions (in Qualisys coordinates) list to a 2D targets positions (in Qualisys coordinates) list.
         Each sub-list is the position for each target. The order of output list does not matter. This is only for visualization.
 

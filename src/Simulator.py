@@ -163,7 +163,7 @@ class Simulator:
             ax_map = self.create_realtime_plot(realtime_flag=False, cluster_legend_flag=False, path_legend_flag=True)
             # plot the map
             cmap = matplotlib.colors.ListedColormap(['white','black'])
-            ax_map.pcolor(self.map_array, cmap=cmap, edgecolors='k')
+            ax_map.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
             ax_map.scatter(path_single[0]+0.5, path_single[1]+0.5, marker="o", color="blue")
             ax_map.scatter(path_single[-2]+0.5, path_single[-1]+0.5, marker="x", color="red")
             ax_map.plot(list(map(lambda x:x+0.5, path_single[0::2])),
@@ -196,7 +196,6 @@ class Simulator:
         ax_before = self.create_realtime_plot(realtime_flag=False, cluster_legend_flag=False, path_legend_flag=False)
         # plot the map
         cmap = matplotlib.colors.ListedColormap(['white','black'])
-        # ax_before.pcolor(self.map_array, cmap=cmap, edgecolors='k')
         ax_before.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
         # plot agents and targets
         self.plot_agents(agents_position, text_offset, ax_before)
@@ -206,7 +205,7 @@ class Simulator:
         ax = self.create_realtime_plot(realtime_flag=False, cluster_legend_flag=True, path_legend_flag=True)
         # plot the map
         cmap = matplotlib.colors.ListedColormap(['white','black'])
-        ax.pcolor(self.map_array, cmap=cmap, edgecolors='none')
+        ax.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
         # plot agents and targets
         self.plot_agents(agents_position, text_offset, ax)
         self.plot_targets(targets_position, cluster_centers, points_idx_for_clusters, text_offset, ax)
@@ -281,7 +280,7 @@ class Simulator:
         text_offset = (self.map_width - 0) / 40
         cmap = matplotlib.colors.ListedColormap(['white','black'])
         # plot the map
-        ax.pcolor(self.map_array, cmap=cmap, alpha=0.5)
+        ax.pcolormesh(self.map_array, cmap=cmap, alpha=1.0, edgecolors='none')
         # plot agents and targets
         self.plot_agents(agents_position, text_offset, ax)
         self.plot_targets(targets_position, cluster_centers, points_idx_for_clusters,
@@ -421,7 +420,7 @@ class Simulator:
         """
         _, ax_map = plt.subplots(1, 1)
         cmap = matplotlib.colors.ListedColormap(["white","black"])
-        ax_map.pcolor(self.map_array, cmap=cmap, edgecolors='k')
+        ax_map.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
 
         if polygon_flag:
             for idx_polygon in range(len(self.polygon_vertex_list)):

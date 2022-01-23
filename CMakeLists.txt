@@ -73,6 +73,20 @@ target_link_libraries(K_MEANS PRIVATE pthread)
 # add test file for Optimal Search
 add_executable(test_optimal_search test/test_optimal_search.cpp ${HEADER_FILES_HPP})
 
+# add test file for Optimal Search v2, every agent at least has one task
+add_executable(test_optimal_search_v2 test/test_optimal_search_v2.cpp ${HEADER_FILES_HPP})
+
 # Build C++ library for Python, Optimal Search
 pybind11_add_module(OptimalSearch src/OptimalSearch.cpp)
 target_link_libraries(OptimalSearch PRIVATE)
+
+# Build C++ library for Python, Optimal Search v2
+pybind11_add_module(OptimalSearchV2 src/OptimalSearchV2.cpp)
+target_link_libraries(OptimalSearchV2 PRIVATE)
+
+# add GA Solver test file as executable
+add_executable(test_ga_solver ${CMAKE_SOURCE_DIR}/test/test_ga_solver.cpp ${HEADER_FILES_HPP})
+
+# Build C++ library for Python, GA Solver
+pybind11_add_module(GA_Solver src/GA_Solver.cpp)
+target_link_libraries(GA_Solver PRIVATE ${ORTOOLS_LIBRARIES} pthread)

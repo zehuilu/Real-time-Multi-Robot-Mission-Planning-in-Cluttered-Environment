@@ -41,7 +41,6 @@ class MissionPlannerMultiAgent:
         """
         self.solver_mode = input_dict["solver_mode"]
         self.planning_frequency = input_dict["planning_frequency"]
-        self.loading_planning_function()
 
         if "num_cluster" in input_dict and "number_of_iterations" in input_dict:
             # number of clusters for task decomposition
@@ -66,12 +65,12 @@ class MissionPlannerMultiAgent:
         ax = self.MySimulator.create_realtime_plot()  # create a realtime plotting figure
 
         # initialize task decomposition
-        path_all_agents, task_allocation_result, cluster_centers, points_idx_for_clusters, cluster_assigned_idx = \
+        path_all_agents, task_order, cluster_centers, points_idx_for_clusters, cluster_assigned_idx = \
             DrMaMP.MissionPlanning(agents_position, targets_position, self.num_cluster, self.number_of_iterations,
             self.MySimulator.map_array.flatten().tolist(), self.MySimulator.map_width, self.MySimulator.map_height)
 
         # rearrange the targets, 1D to 2D list
-        targets_position_2d = self.rearrange_targets(targets_position, task_allocation_result)
+        targets_position_2d = self.rearrange_targets(targets_position, task_order)
 
         # initialize Finite State Machine for each agent
         for idx_agent in range(self.num_agents):
@@ -86,28 +85,21 @@ class MissionPlannerMultiAgent:
             # convert 2D numpy array to 1D list
             # world_map = self.MySimulator.map_array.flatten().tolist()
 
-            if targets_position:
-                t0 = time.time()
-                # do the planning
-                path_all_agents = DrMaMP.PathPlanningMultiAgent(agents_position, targets_position_2d,
-                    self.MySimulator.map_array.flatten().tolist(), self.MySimulator.map_width, self.MySimulator.map_height)
-                t1 = time.time()
-                time_algorithm_ms = round((t1-t0)*1000, 2)  # milliseconds
-                # print("Time used [sec]:" + str(t1 - t0))
-            else:
-                path_all_agents = []
-                task_allocation_result = []
-                time_algorithm_ms = None
+            # update targets by Finite State Machine
+            targets_position_2d, _ = self.update_targets_list(agents_position, targets_position_2d)
+
+            # do the planning
+            path_all_agents, time_algorithm_ms = self.run_solver_once(agents_position, targets_position_2d)
+
+            # for visualization only
+            targets_plot_list = list(chain.from_iterable(targets_position_2d))
 
             # update the figure
-            self.MySimulator.update_realtime_plot(path_all_agents, agents_position, targets_position, task_allocation_result, [], [], ax)
-
-            # rearrange the targets, 1D to 2D list
-            targets_position_update = self.rearrange_targets(targets_position, task_allocation_result)
+            self.MySimulator.update_realtime_plot(path_all_agents, agents_position, targets_plot_list, [], [], [], ax)
 
             # update the agents positions
             agents_position, targets_position_2d, end_flag = self.update_agents_positions(
-                path_all_agents, agents_position, targets_position_update, task_allocation_result,
+                path_all_agents, agents_position, targets_position_2d, task_order,
                 agent_velocity_ave, dt_update=1/self.planning_frequency)
 
             # plot the algorithm time
@@ -121,21 +113,67 @@ class MissionPlannerMultiAgent:
             await asyncio.sleep(time_sleep)
 
         # update the figure one more time
-        self.MySimulator.update_realtime_plot([], agents_position, targets_position, task_allocation_result, [], [], ax)
+        targets_plot_list = list(chain.from_iterable(targets_position_2d))
+        self.MySimulator.update_realtime_plot([], agents_position, targets_plot_list, [], [], [], ax)
         plt.pause(5)
 
-    def loading_planning_function(self):
+    def run_solver_once(self, agents_position, targets_position_2d):
         """
-        Loading a planning function by self.solver_mode.
+        Run the planning solver once.
+
+        Input:
+            agents_position: 1D list for agents positions, [x0,y0, x1,y1, ...]
+            targets_position_2d: 2D list, each sub-list is the targets positions in an sequence for each agent,
+                [  [x0,y0, x1,y1, ...] , [x2,y2, x3,y3, ...] , ... ]
+
         """
-        PlanningFunction = getattr(DrMaMP, self.solver_mode)
-        self.PlanningFunction = {
-            "MissionPlanning": lambda input_dict: \
-                PlanningFunction(input_dict["agents_position"], input_dict["targets_position"],
-                                 self.num_cluster, self.number_of_iterations,
-                                 self.MySimulator.map_array.flatten().tolist(),
-                                 self.MySimulator.map_width, self.MySimulator.map_height)[0 : 2]
-        }[self.solver_mode]
+        # do the planning
+        t0 = time.time()
+        path_all_agents = DrMaMP.PathPlanningMultiAgent(
+            agents_position, targets_position_2d,
+            self.MySimulator.map_array.flatten().tolist(),
+            self.MySimulator.map_width, self.MySimulator.map_height)
+        t1 = time.time()
+        time_algorithm_ms = round((t1-t0)*1000, 2)  # milliseconds
+        # print("Solver time used [sec]:" + str(t1 - t0))
+
+        return path_all_agents, time_algorithm_ms
+
+    def update_targets_list(self, agents_position: list, targets_position_2d: list):
+        """
+        Update the targets list by updating finite state machine.
+
+        Inputs:
+            agents_position: a 1D list, [x0,y0, x1,y1, ...]
+            targets_position_2d: a 2D list, each sub-list is a target set of an agent.
+                For example, targets_position_2d[1] = [x0,y0, x1,y1] is for the second agent (Agent-1).
+
+        Outputs:
+            targets_position_2d_new: a 2D list, as same as targets_position_2d
+            end_flag: boolean, True if all agents states are "End"
+        """
+        # initialize the output
+        end_flag_list = list()
+        targets_position_2d_new = list()
+
+        for idx_agent in range(self.num_agents):
+            # transit states
+            _, targets_position_new_this = self.list_AgentFSM[idx_agent].transition(
+                agentPositionNow=agents_position[2*idx_agent : 2*(idx_agent+1)],
+                targetSetTotal=targets_position_2d[idx_agent])
+
+            # if state is "End", this agent completed all assigned tasks
+            if self.list_AgentFSM[idx_agent].StateNow.stateName == "End":
+                end_flag_list.append(True)
+            else:
+                end_flag_list.append(False)
+
+            # update new targets positions list
+            targets_position_2d_new.append(targets_position_new_this)
+
+        # True if all agents states are "End"
+        end_flag = all(end_flag_list)
+        return targets_position_2d_new, end_flag
 
     def rearrange_targets(self, targets_position_1d: list, task_allocation_result: list):
         """

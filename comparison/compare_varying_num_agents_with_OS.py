@@ -75,6 +75,7 @@ if __name__ == "__main__":
             time_used_my = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_my.append(time_used_my)
             this_distance_my, distance_list_my = compute_path_distance_many_agents(path_all_agents_my)
+
             distance_list_single_case_my.append(this_distance_my)
 
             # CBBA

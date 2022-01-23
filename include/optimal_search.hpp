@@ -57,11 +57,18 @@ inline void permutation_order_task(int task_index[], int size, int num_agent, in
                 
                 current_position[0] = next_position[0];
                 current_position[1] = next_position[1];
-                
+               
                 index++;
+                // std::cout << "path[";
+                // for (int k = 0; k < path.size(); k++ )
+		 // {
+	             // std::cout << path[k] << ", ";
+		 // }
+		 // std::cout << "]";
             }
 
         }
+        // std::cout<<cost_total << "\n";
         
         if (cost_total < cost_now) {
             cost_now = cost_total;
@@ -98,25 +105,25 @@ inline void permutation_order_task(int task_index[], int size, int num_agent, in
 }
 
 inline float permutation_num_task(const int num_agent, const int num_task, int agent_position[], int targets_position[], std::vector<int> map, int mapSizeX, int mapSizeY, int solution[]) {
-    int factorial = 1;
-    for(int i = 1; i <= num_task; ++i) {
-        factorial *= i;
-    }
+    // int factorial = 1;
+    // for(int i = 1; i <= num_task; ++i) {
+        // factorial *= i;
+    // }
     
-    int C_task = 1;
-    int C_agent = 1;
-    int C_diff = 1;
-    for(int i = 1; i < num_task; ++i) {
-        C_task *= i;
-    }
-    for(int i = 1; i < num_agent; ++i) {
-        C_agent *= i;
-    }
-    for(int i = 1; i <= num_task - num_agent; ++i) {
-        C_diff *= i;
-    }
+    // int C_task = 1;
+    // int C_agent = 1;
+    // int C_diff = 1;
+    // for(int i = 1; i < num_task; ++i) {
+        // C_task *= i;
+    // }
+    // for(int i = 1; i < num_agent; ++i) {
+        // C_agent *= i;
+    // }
+    // for(int i = 1; i <= num_task - num_agent; ++i) {
+        // C_diff *= i;
+    // }
     
-    int expect_case = factorial*C_task/C_agent/C_diff;
+    // int expect_case = factorial*C_task/C_agent/C_diff;
     
     float cost_now = 1E8;
     int agent_index = 0;

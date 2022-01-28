@@ -43,7 +43,7 @@ if __name__ == "__main__":
     distance_my = compute_path_distance_one_agent(path_many_result)
     print("my distance", distance_my)
     # visualization
-    Simulator.plot_path_multi_agent([path_many_result], agent_position, targets_position, [task_allocation_result], [], [])
+    Simulator.plot_paths([path_many_result], agent_position, targets_position, [task_allocation_result], [], [])
     print("my task_allocation_result")
     print(task_allocation_result)
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     distance_cbba = compute_path_distance_one_agent(path_all_agents[0])
     print("CBBA distance", distance_cbba)
     # plot
-    Simulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
+    Simulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
     print("CBBA task_allocation_list")
     print(task_allocation_list[0])
 

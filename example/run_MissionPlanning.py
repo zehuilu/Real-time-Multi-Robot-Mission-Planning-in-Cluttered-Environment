@@ -55,6 +55,6 @@ if __name__ == "__main__":
     print(cluster_assigned_idx)
 
     # visualization
-    MySimulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
+    MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
     MySimulator.plot_cluster_assign(agent_position, targets_position, points_idx_for_clusters, cluster_centers, cluster_assigned_idx)
     plt.show()

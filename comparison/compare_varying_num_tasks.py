@@ -35,10 +35,10 @@ if __name__ == "__main__":
 
     # fix the number of agents
     num_agents = 3
-    max_num_targets_per_agent = 15
-    num_run = 50
-    run_cbba_flag = False
-    run_ga_flag = True
+    max_num_targets_per_agent = 12
+    num_run = 20
+    run_cbba_flag = True
+    run_ga_flag = False
 
     # some hyper-parameters for Genetic Algorithm
     population_size = 25
@@ -139,8 +139,10 @@ if __name__ == "__main__":
         plt.ylabel('Computing time [ms]')
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends
-        colors = ["blue", "red", "green"]
-        labels = ["Proposed", "CBBA", "K-GA"]
+        # colors = ["blue", "red", "green"]
+        # labels = ["Proposed", "CBBA", "K-GA"]
+        colors = ["blue", "red"]
+        labels = ["Proposed", "CBBA"]
         f = lambda c: plt.plot([],[], color=c)[0]
         handles = [f(colors[i]) for i in range(len(labels))]
         legend = plt.legend(handles, labels, loc='upper left', framealpha=1)
@@ -168,8 +170,10 @@ if __name__ == "__main__":
         plt.ylabel('Task completion time')
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends
-        colors = ["blue", "red", "green"]
-        labels = ["Proposed", "CBBA", "K-GA"]
+        # colors = ["blue", "red", "green"]
+        # labels = ["Proposed", "CBBA", "K-GA"]
+        colors = ["blue", "red"]
+        labels = ["Proposed", "CBBA"]
         f = lambda c: plt.plot([],[], color=c)[0]
         handles = [f(colors[i]) for i in range(len(labels))]
         legend = plt.legend(handles, labels, loc='upper left', framealpha=1)

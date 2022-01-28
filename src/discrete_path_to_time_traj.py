@@ -41,7 +41,7 @@ def discrete_path_to_time_traj(path: list, dt: float, velocity_ave: float, inter
         else:
             return time_queue_vec, position_traj
     else:
-        print("This path is empty. The route is infeasible.")
+        # print("This path is empty. The route is infeasible.")
         time_queue_vec = list()
         position_traj = list()
         if velocity_flag:

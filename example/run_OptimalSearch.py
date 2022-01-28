@@ -54,6 +54,6 @@ if __name__ == "__main__":
     print(optimal_cost)
 
     # visualization
-    MySimulator.plot_path_multi_agent([], agent_position, targets_position, [], [], [])
+    MySimulator.plot_paths([], agent_position, targets_position, [], [], [])
     plt.show()
 

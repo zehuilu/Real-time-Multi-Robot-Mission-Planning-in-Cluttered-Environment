@@ -43,7 +43,7 @@ if __name__ == "__main__":
     t1 = time.time()
     print("Legacy time [sec]:" + str(t1 - t0))
     # visualization
-    Simulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
+    Simulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
     Simulator.plot_cluster_assign(agent_position, targets_position, points_idx_for_clusters, cluster_centers, cluster_assigned_idx)
 
     # current method
@@ -55,6 +55,6 @@ if __name__ == "__main__":
     t1 = time.time()
     print("Current method time [sec]:" + str(t1 - t0))
     # visualization
-    Simulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
+    Simulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
     Simulator.plot_cluster_assign(agent_position, targets_position, points_idx_for_clusters, cluster_centers, cluster_assigned_idx)
     plt.show()

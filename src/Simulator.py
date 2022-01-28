@@ -172,8 +172,8 @@ class Simulator:
         else:
             print("Lazy Theta Star didn't find a path!")
 
-    def plot_path_multi_agent(self, path_many_agents: list, agents_position: list,
-                       targets_position: list, task_allocation_result_many_agents: list,
+    def plot_paths(self, path_many_agents: list, agents_position: list,
+                       targets_position: list, task_order: list,
                        cluster_centers: list, points_idx_for_clusters: list):
         """
         Plot many paths for multiple agents.
@@ -183,9 +183,9 @@ class Simulator:
                 [[x0,y0, x1,y1, x2,y2, ...], [x0,y0, x1,y1, x2,y2, ...], ...]
             agents_position: a 1D list for all the agent positions, [x0,y0, x1,y1, x2,y2, ...]
             targets_position: a 1D list for all the target positions, [x0,y0, x1,y2, x2,y2, ...]
-            task_allocation_result_many_agents: a 2D list for the task allocation order of all the agents.
+            task_order: a 2D list for the task allocation order of all the agents.
                 If it is empty, there is no task allocation result.
-                example: task_allocation_result_many_agents[1] = [3, 0, 2, 3, 1, 4] means the task
+                example: task_order[1] = [3, 0, 2, 3, 1, 4] means the task
                 allocation order for Agent 1 is T3 -> T0 -> T2 -> T3 -> T1 -> T4, where Agent 1 is the
                 second agent, and T0 is the first task.
         """
@@ -210,7 +210,7 @@ class Simulator:
         self.plot_agents(agents_position, text_offset, ax)
         self.plot_targets(targets_position, cluster_centers, points_idx_for_clusters, text_offset, ax)
         # plot paths
-        self.plot_path_multi_agent_figure(path_many_agents, agents_position, targets_position, task_allocation_result_many_agents, ax)
+        self.plot_paths_figure(path_many_agents, agents_position, targets_position, task_order, ax)
         plt.show(block=False)
 
     def plot_cluster_assign(self, agents_position: list, targets_position: list,
@@ -242,7 +242,8 @@ class Simulator:
 
         # plot cluster centers
         for i in range(0, int(len(cluster_centers)), 2):
-            ax.scatter(cluster_centers[i]+0.5, cluster_centers[i+1]+0.5, c=color_by_cluster[int(i/2)], marker='*', s=100)
+            if cluster_centers[i] >= 0:
+                ax.scatter(cluster_centers[i]+0.5, cluster_centers[i+1]+0.5, c=color_by_cluster[int(i/2)], marker='*', s=100)
 
         # plot agents and lines link to assigned clusters
         for idx_agent in range(int(len(agents_position)/2)):
@@ -269,10 +270,11 @@ class Simulator:
         return ax
 
     def update_realtime_plot(self, path_many_agents: list, agents_position: list,
-                             targets_position: list, task_allocation_result_many_agents: list,
-                             cluster_centers: list, points_idx_for_clusters: list, ax):
+                             targets_position: list, task_order: list,
+                             cluster_centers: list, points_idx_for_clusters: list, ax,
+                             plot_cluster_flag=False):
         """
-        Update realtime plotting once in an existing figure. See input details in self.plot_path_multi_agent()
+        Update realtime plotting once in an existing figure. See input details in self.plot_paths()
         """
         ax.clear()  # clear the previous figure
 
@@ -284,13 +286,13 @@ class Simulator:
         # plot agents and targets
         self.plot_agents(agents_position, text_offset, ax)
         self.plot_targets(targets_position, cluster_centers, points_idx_for_clusters,
-                          text_offset, ax, plot_cluster_flag=False, target_color_flag=False)
+                          text_offset, ax)
         if path_many_agents:
             # plot paths
-            self.plot_path_multi_agent_figure(path_many_agents, agents_position, targets_position,
-                                              task_allocation_result_many_agents, ax)
+            self.plot_paths_figure(path_many_agents, agents_position,
+                                   targets_position, task_order, ax)
         # plot legends
-        handles, labels = self.figure_settings(ax, cluster_legend_flag=False, path_legend_flag=True)
+        handles, labels = self.figure_settings(ax, cluster_legend_flag=True, path_legend_flag=True)
         legend = plt.legend(handles, labels, bbox_to_anchor=(1, 1), loc="upper left", framealpha=1)
         plt.draw()
 
@@ -304,40 +306,48 @@ class Simulator:
                     "A"+str(idx_agent), fontweight="bold", color="blue")
 
     def plot_targets(self, targets_position: list, cluster_centers: list, points_idx_for_clusters: list,
-                     text_offset: float, ax, plot_cluster_flag=True, target_color_flag=True):
+                     text_offset: float, ax, target_color_flag=False):
         """
         Plot targets.
 
         plot_cluster_flag = True if plotting cluster centers
         target_color_flag = True if plotting targets by different colors, categorized by clusters
         """
+        # if cluster_centers is not empty, plot targets by clusters
         if cluster_centers:
-            # if cluster_centers is not empty, plot targets by clusters
-            # a color list, each entry is for each cluster
-            color_by_cluster = np.linspace(0, 1, num=int(len(cluster_centers)/2))
-            # points_idx_for_clusters is a 2D list, stores the index of target for each cluster
-            # plot clusters
-            targets_plot_x = list()
-            targets_plot_y = list()
-            list_num_points_per_cluster = list()
-            for i in range(int(len(points_idx_for_clusters))):
-                list_num_points_per_cluster.append(len(points_idx_for_clusters[i]))
-                for j in range(int(len(points_idx_for_clusters[i]))):
-                    idx_target = points_idx_for_clusters[i][j]
-                    targets_plot_x.append(targets_position[2*idx_target])
-                    targets_plot_y.append(targets_position[2*idx_target+1])
+            # True to plot targets by different colors
             if target_color_flag:
+                # a color list, each entry is for each cluster
+                color_by_cluster = np.linspace(0, 1, num=int(len(cluster_centers)/2))
+                # points_idx_for_clusters is a 2D list, stores the index of target for each cluster
+                # plot clusters
+                targets_plot_x = list()
+                targets_plot_y = list()
+                list_num_points_per_cluster = list()
+                for i in range(int(len(points_idx_for_clusters))):
+                    list_num_points_per_cluster.append(len(points_idx_for_clusters[i]))
+                    for j in range(int(len(points_idx_for_clusters[i]))):
+                        idx_target = points_idx_for_clusters[i][j]
+                        targets_plot_x.append(targets_position[2*idx_target])
+                        targets_plot_y.append(targets_position[2*idx_target+1])
                 # a color list, each entry is for each target
                 color_all_targets = np.repeat(color_by_cluster, np.array(list_num_points_per_cluster))
                 ax.scatter(list(map(lambda x:x+0.5, targets_plot_x)),
                            list(map(lambda x:x+0.5, targets_plot_y)), c=color_all_targets, cmap='viridis', marker='x')
-            else:
-                ax.scatter(list(map(lambda x:x+0.5, targets_plot_x)),
-                           list(map(lambda x:x+0.5, targets_plot_y)), c="red", marker='x')
-            # plot cluster centers
-            if plot_cluster_flag:
+                # plot cluster centers
                 for i in range(0, int(len(cluster_centers)), 2):
-                    ax.scatter(cluster_centers[i]+0.5, cluster_centers[i+1]+0.5, c=color_by_cluster[int(i/2)], marker='*', s=100)
+                    if cluster_centers[i] >= 0:
+                        ax.scatter(cluster_centers[i]+0.5, cluster_centers[i+1]+0.5, c=color_by_cluster[int(i/2)], marker='*', s=100)
+            else:
+                # if cluster_centers is empty, plot targets
+                for idx_target in range(int(len(targets_position)/2)):
+                    ax.scatter(targets_position[2*idx_target]+0.5, targets_position[2*idx_target+1]+0.5, marker="x", color="red")
+                    ax.text(targets_position[2*idx_target]+text_offset, targets_position[2*idx_target+1]+text_offset,
+                            "T"+str(idx_target), fontweight="bold", color="red")
+                # plot cluster centers
+                for i in range(0, int(len(cluster_centers)), 2):
+                    if cluster_centers[i] >= 0:
+                        ax.scatter(cluster_centers[i]+0.5, cluster_centers[i+1]+0.5, color="purple", marker="*", s=100)
         else:
             # if cluster_centers is empty, plot targets
             for idx_target in range(int(len(targets_position)/2)):
@@ -345,15 +355,15 @@ class Simulator:
                 ax.text(targets_position[2*idx_target]+text_offset, targets_position[2*idx_target+1]+text_offset,
                         "T"+str(idx_target), fontweight="bold", color="red")
 
-    def plot_path_multi_agent_figure(self, path_many_agents: list, agents_position: list,
-                                     targets_position: list, task_allocation_result_many_agents: list, ax):
+    def plot_paths_figure(self, path_many_agents: list, agents_position: list,
+                                     targets_position: list, task_order: list, ax):
         """
         Plot path for multiple agents in an existing figure.
         """
         for idx_agent in range(len(path_many_agents)):
             path_many_each_agent = path_many_agents[idx_agent]
-            if task_allocation_result_many_agents:
-                task_allocation_result_each_agent = task_allocation_result_many_agents[idx_agent]
+            if task_order:
+                task_allocation_result_each_agent = task_order[idx_agent]
             else:
                 task_allocation_result_each_agent = list()
 
@@ -412,93 +422,3 @@ class Simulator:
             labels.extend(["Path", "No Path", "Obstacles"])
         # a tuple includes the handles and labels of legend
         return handles, labels
-
-    ##### the followings are for dynamic obstacles
-    def plot_map(self, polygon_flag: bool):
-        """
-        Plot the map.
-        """
-        _, ax_map = plt.subplots(1, 1)
-        cmap = matplotlib.colors.ListedColormap(["white","black"])
-        ax_map.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
-
-        if polygon_flag:
-            for idx_polygon in range(len(self.polygon_vertex_list)):
-                ax_map.add_patch(patches.Polygon(self.polygon_vertex_map_index_list[idx_polygon], facecolor='r', alpha=0.5))
-
-            for idx_polygon in range(len(self.polygon_vertex_map_index_list)):
-                x_max, y_max = np.max(self.polygon_vertex_map_index_list[idx_polygon], axis=0)
-                x_min, y_min = np.min(self.polygon_vertex_map_index_list[idx_polygon], axis=0)
-
-                ax_map.plot([x_min, x_min], [y_min, y_max])
-                ax_map.plot([x_max, x_max], [y_min, y_max])
-                ax_map.plot([x_min, x_max], [y_min, y_min])
-                ax_map.plot([x_min, x_max], [y_max, y_max])
-
-            for idx_polygon in range(len(self.polygon_vertex_map_index_list)):
-                vertex_list = self.polygon_vertex_map_index_list[idx_polygon]
-                for idx_vertex in range(len(vertex_list)):
-                    vertex = vertex_list[idx_vertex]
-                    ax_map.scatter(vertex[0], vertex[1])
-                    # ax_map.text(vertex[0]-0.5, vertex[1]-0.5, str(idx_vertex))
-
-        ax_map.set_xlabel("x, column index")
-        ax_map.set_ylabel("y, row index")
-        ax_map.set_aspect('equal')
-        plt.show(block=False)
-
-    def load_polygon_vertex(self):
-        self.polygon_vertex_map_index_list = list()
-        for idx_polygon in range(len(self.polygon_vertex_list)):
-            polygon_vertex_map_index_each = list()
-            for idx_vertex in range(len(self.polygon_vertex_list[idx_polygon])):
-                vertex_map_index = self.position_to_map_index(self.polygon_vertex_list[idx_polygon][idx_vertex])
-                polygon_vertex_map_index_each.append(vertex_map_index)
-            self.polygon_vertex_map_index_list.append(polygon_vertex_map_index_each)
-
-    def find_occupied_cell_polygon(self, idx_polygon: int):
-        column_max, row_max = np.max(self.polygon_vertex_map_index_list[idx_polygon], axis=0)
-        column_min, row_min = np.min(self.polygon_vertex_map_index_list[idx_polygon], axis=0)
-
-        inside_polygon_row_range = [row_min, row_max]
-        inside_polygon_column_range = list()
-
-        epsilon = 1e-6
-
-        for idx_row in range(row_min, row_max+1, 1):
-
-            # [idx_column_left, idx_column_right]
-            inside_polygon_column_range_each_row = list()
-
-            # find the column index of the left boundary cell, from left to right
-            for idx_column in range(column_min, column_max+1, 1):
-                # convert a cell [idx_column, idx_row] to a position [px, py] in meter
-                position = self.map_index_to_position([idx_column, idx_row])
-
-                result = np.max(np.dot(self.polygon_A_list[idx_polygon], position)
-                                - self.polygon_b_list[idx_polygon])
-                
-                # max(A*p-b)<0 means p is inside the polygon(A,b)
-                if result <= epsilon:
-                    inside_polygon_column_range_each_row.append(idx_column)
-                    break
-
-            # find the column index of the right boundary cell, from right to left
-            for idx_column in range(column_max, column_min-1, -1):
-                # convert a cell [idx_column, idx_row] to a position [px, py] in meter
-                position = self.map_index_to_position([idx_column, idx_row])
-
-                result = np.max(np.dot(self.polygon_A_list[idx_polygon], position)
-                                - self.polygon_b_list[idx_polygon])
-
-                # max(A*p-b)<0 means p is inside the polygon(A,b)
-                if result <= epsilon:
-                    inside_polygon_column_range_each_row.append(idx_column)
-                    break
-
-            if len(inside_polygon_column_range_each_row) == 1:
-                inside_polygon_column_range_each_row.append(inside_polygon_column_range_each_row[0])
-
-            inside_polygon_column_range.append(inside_polygon_column_range_each_row)
-
-        return inside_polygon_row_range, inside_polygon_column_range

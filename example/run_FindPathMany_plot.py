@@ -74,6 +74,6 @@ if __name__ == "__main__":
         print("Distance computed afterwards: " + str(distance_check))
 
     # visualization
-    MySimulator.plot_path_multi_agent([path_many], agent_position, targets_position, [], [], [])
+    MySimulator.plot_paths([path_many], agent_position, targets_position, [], [], [])
     plt.show()
     

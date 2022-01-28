@@ -45,7 +45,6 @@ if __name__ == "__main__":
     # run the planner online
     asyncio.run(MyPlanner.run_planner({"agents_position": agents_position,
                                        "targets_position": targets_position,
-                                       "solver_mode": "MissionPlanning",
                                        "num_cluster": num_cluster,
                                        "number_of_iterations": number_of_iterations,
                                        "agent_velocity_ave": agent_velocity_ave,

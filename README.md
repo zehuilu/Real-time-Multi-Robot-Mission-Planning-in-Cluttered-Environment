@@ -15,6 +15,7 @@ Dependencies
   - [pybind11](https://github.com/pybind/pybind11)
   - [numpy](https://numpy.org/)
   - [matplotlib](https://matplotlib.org/)
+  - [SciPy](https://www.scipy.org/)
 
 * [OR-Tools](https://developers.google.com/optimization)
 
@@ -25,7 +26,6 @@ For comparisons ONLY:
   - [matplotlib](https://matplotlib.org/)
 
 For C++ K-means clustering algorithm comparisons ONLY (you don't need the following packages if not running `test/k_means_comparison.py`):
-  - [SciPy](https://www.scipy.org/)
   - [scikit-learn](https://scikit-learn.org/stable/)
 
 Build

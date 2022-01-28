@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # create a simulator
     MySimulator = Simulator(map_width_meter, map_height_meter, map_resolution, value_non_obs, value_obs)
     # number of obstacles
-    num_obs = 50
+    num_obs = 100
     # [width, length] size of each obstacle [meter]
     size_obs = [1, 1]
     # generate random obstacles
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # print("my_distance_list")
     # print(my_distance_list)
     # visualization
-    MySimulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
+    MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
     MySimulator.plot_cluster_assign(agent_position, targets_position, points_idx_for_clusters, cluster_centers, cluster_assigned_idx)
 
 
@@ -69,13 +69,13 @@ if __name__ == "__main__":
     print("CBBA total distance: ", cbba_distance)
     # print("CBBA distance_list")
     # print(cbba_distance_list)
-    # For Simulator.plot_path_multi_agent(), each sub list of the input argument
+    # For Simulator.plot_paths(), each sub list of the input argument
     # task_allocation_result_many_agents is the task allocation order for each agent.
     # The first entry is the index of agent.
     for idx in range(len(task_allocation_list)):
         task_allocation_list[idx].insert(0, idx)
     # plot
-    MySimulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
+    MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
 
 
     # Genetic Algorithm
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     for idx in range(len(task_order_all)):
         task_order_all[idx].insert(0, idx)
     # plot
-    MySimulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_order_all, cluster_centers, points_idx_for_clusters)
+    MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_order_all, cluster_centers, points_idx_for_clusters)
 
 
     # # Optimal Search V2

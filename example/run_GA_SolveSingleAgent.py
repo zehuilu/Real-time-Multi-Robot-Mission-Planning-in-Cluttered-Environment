@@ -53,5 +53,5 @@ if __name__ == "__main__":
         print(task_order[i])
 
     # visualization
-    MySimulator.plot_path_multi_agent([path_many_result], agent_position, targets_position, [task_order], [], [])
+    MySimulator.plot_paths([path_many_result], agent_position, targets_position, [task_order], [], [])
     plt.show()

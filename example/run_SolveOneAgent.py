@@ -45,5 +45,5 @@ if __name__ == "__main__":
         print(task_allocation_result[i])
 
     # visualization
-    MySimulator.plot_path_multi_agent([path_many_result], agent_position, targets_position, [task_allocation_result], [], [])
+    MySimulator.plot_paths([path_many_result], agent_position, targets_position, [task_allocation_result], [], [])
     plt.show()

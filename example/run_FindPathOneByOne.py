@@ -51,6 +51,6 @@ if __name__ == "__main__":
     # visualization
     # task_allocation_result is [0, 1, 2, 3, ..., num_targets]
     task_allocation_result = [*range(0, num_targets+1)]
-    MySimulator.plot_path_multi_agent([path_many], agent_position, targets_position, task_allocation_result, [], [])
+    MySimulator.plot_paths([path_many], agent_position, targets_position, task_allocation_result, [], [])
     plt.show()
     

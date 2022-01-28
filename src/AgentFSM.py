@@ -49,19 +49,8 @@ class AgentFSM:
     agentIdx: int  # the index for this agent
     distanceThreshold: float  # when distance between A and B < this number, we say A and B have same position
     StatesPool: dict  # a dictionary for all included State objects
-    numTargetTotal: int  # the number of targets in total
-    targetIdxNow: int  # the target index that is currently assigned to the agent
-    """
-    targetSetTotal: 1D list, a set of targets positions in total, [x0,y0, x1,y1, x2,y2, ...]
-    The execution order is target 0 -> target 1 -> target 2 -> ...
-    """
-    targetSetTotal: list
-    targetSetToDo: list  # a 1D list for a set of targets positions to do
-    """
-    targetSetOrder: a 1D list for the execution order of targets
-    Example: targetSetOrder = [0, 3, 1, 2] means the T0 -> T3 -> T1 -> T2
-    """
-    targetSetOrder: list
+    targetPosition: list  # a 1d list for current target position, [px, py]
+
 
     def __init__(self, agentIdx=0, distanceThreshold=1.414):
         """
@@ -79,94 +68,59 @@ class AgentFSM:
                            "End": End()}
         self.StateNow = self.StatesPool["Unassigned"]
     
-    def initFSM(self, targetSetTotal: list, targetSetOrder=None):
+    def initFSM(self, targetPosition: list):
         """
-        Initialize the Agent Finite State Machine by a set of targets positions that need to be done.
+        Initialize the Agent Finite State Machine by a target position.
 
         Input:
-            targetSetTotal: 1D list, a set of targets positions that need to be done, [x0,y0, x1,y1, x2,y2, ...].
-                The execution order is target 0 -> target 1 -> target 2 -> ...
-            targetSetOrder: 1D list, the execution order of targets. If empty, [0, 1, 2, 3, ...]
-                Example: targetSetOrder = [0, 3, 1, 2] means the T0 -> T3 -> T1 -> T2
+            targetPosition: 1D list, a target position that need to be visited, [x0, y0]. If no target, empty list.
         """
         self.StateNow = self.StatesPool["Unassigned"]
-        self.targetSetTotal = copy.deepcopy(targetSetTotal)
-        self.targetSetToDo = copy.deepcopy(targetSetTotal)
-        self.targetSetOrder = copy.deepcopy(targetSetOrder)
-        self.numTargetTotal = int(len(targetSetTotal) / 2)
-        self.targetIdxNow = -1
+        self.targetPosition = copy.deepcopy(targetPosition)
 
-    def transition(self, agentPositionNow: list, targetSetTotal: list, targetSetOrder=None):
+    def transition(self, agentPositionNow: list, targetPosition: list):
         """
-        Make state transition based on the current agent position and target set.
+        Make state transition based on the current agent position and target position.
 
         Input:
-            agentPositionNow: 1D list, current agent position, [x0,y0]
-            targetSetTotal: 1D list, a set of targets positions in total, [x0,y0, x1,y1, x2,y2, ...].
-                The execution order is target 0 -> target 1 -> target 2 -> ...
-            targetSetOrder: 1D list, the execution order of targets. If empty, [0, 1, 2, 3, ...]
-                Example: targetSetOrder = [0, 3, 1, 2] means the T0 -> T3 -> T1 -> T2
+            agentPositionNow: 1D list, current agent position, [x0, y0]
+            targetPosition: 1D list, current target position, [px, py]
 
         Output:
             stateName: str, the state name after the transition
-            targetSetToDo: a 1D list, a set of targets positions to do, [x0,y0, x1,y1, x2,y2, ...]
+            targetFinishFlag: True if self.targetPosition is finished
         """
-        # check whether targetSetTotal is equal to the previous one (i.e., self.targetSetTotal)
-        # if not equal, initialize FSM
-        if targetSetTotal != self.targetSetTotal:
-            print("Target set or task allocation changed, initialized FSM.")
-            self.initFSM(targetSetTotal, targetSetOrder)
-        else:
-            # when targets are the same, but the execution order changed, update targetSetOrder
-            if targetSetOrder != self.targetSetOrder:
-                self.targetSetOrder = copy.deepcopy(targetSetOrder)
-
-        # compute the distance between the current agent position and current target position
-        if self.targetIdxNow > -1:
-            if targetSetOrder:
-                # if targetSetOrder is not empty, follow the exact order
-                targetIdx = self.targetSetOrder[self.targetIdxNow]
-                targetPositionNow = self.targetSetTotal[2*targetIdx : 2*targetIdx+2]
-            else:
-                # if targetSetOrder is empty, [0, 1, 2, 3, ...]
-                targetPositionNow = self.targetSetTotal[2*self.targetIdxNow : 2*self.targetIdxNow+2]
-
-            distance = math.sqrt((agentPositionNow[0]-targetPositionNow[0])**2 + (agentPositionNow[1]-targetPositionNow[1])**2)
-        else:
-            # initialize the distance as a large number at the beginning
-            distance = 1E9
-
-        # states transitions
-        if self.StateNow.stateName == "Unassigned":
-            if self.targetIdxNow < self.numTargetTotal - 1:
-                self.targetIdxNow += 1
-                stateName = "Assigned"
-            else:
-                stateName = "End"
-        elif self.StateNow.stateName == "End":
-            # if State == End, keep it
-            stateName = self.StateNow.stateName
-        elif self.StateNow.stateName == "Assigned":
-            if distance > self.distanceThreshold:
-                stateName = self.StateNow.stateName
-                # don't change the assigned target index
-            else:
-                stateName = "Completed"
-        elif self.StateNow.stateName == "Completed":
-            # if completed, delete this target from to-do list
-            if self.targetSetToDo:
-                if targetSetOrder:
-                    # if targetSetOrder is not empty, deleted the completed task by order
-                    targetIdx = self.targetSetOrder[self.targetIdxNow]
-                    del self.targetSetToDo[2*targetIdx: 2*targetIdx+2]
-                else:
-                    # if targetSetOrder is empty, deleted the completed task by default order
-                    del self.targetSetToDo[0:2]
-            # if completed and the to-do list is empty, do nothing
+        if self.StateNow.stateName == "Completed":
+            self.targetPosition = copy.deepcopy(targetPosition)
             stateName = "Unassigned"
+            targetFinishFlag = False
+        elif self.StateNow.stateName == "Unassigned":
+            # if there exists a new target, assign it
+            if targetPosition:
+                self.targetPosition = copy.deepcopy(targetPosition)
+                stateName = "Assigned"
+            # if not, leave it
+            else:
+                self.targetPosition = list()
+                stateName = "Unassigned"
+            targetFinishFlag = False
+        elif self.StateNow.stateName == "Assigned":
+            self.targetPosition = copy.deepcopy(targetPosition)
+            targetFinishFlag = False
+            if self.targetPosition:
+                # compute the distance between the current agent position and current target position
+                distance = math.sqrt(pow(agentPositionNow[0]-self.targetPosition[0], 2) + pow(agentPositionNow[1]-self.targetPosition[1], 2))
+                # no finish current target, don't change it
+                if distance > self.distanceThreshold:
+                    stateName = self.StateNow.stateName
+                else:
+                    stateName = "Completed"
+                    targetFinishFlag = True
+            else:
+                stateName = "Unassigned"
         else:
-            Exception("AgentFSM only supports 4 states: Unassigned, Assigned, Completed, End!")
+            Exception("AgentFSM only supports 3 states: Unassigned, Assigned, Completed!")
 
         # update the state
         self.StateNow = self.StatesPool[stateName]
-        return stateName, copy.deepcopy(self.targetSetToDo)
+        return stateName, targetFinishFlag

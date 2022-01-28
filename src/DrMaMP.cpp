@@ -17,6 +17,7 @@
 #include "get_combination.hpp"
 #include "k_means.hpp"
 #include "k_means_with_plus_plus.hpp"
+#include "k_means_with_external_centroids.hpp"
 
 #include "ortools/constraint_solver/routing.h"
 #include "ortools/constraint_solver/routing_enums.pb.h"
@@ -272,7 +273,7 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
     const size_t& num_cluster,
     const size_t& number_of_iterations)
 {
-    // convert raw target positions to Points
+    // convert vector<int> to vector<float>
     std::vector<float> targets_position_float(targets_position.begin(), targets_position.end());
     // K-means clustering
     auto [cluster_centers, assignments, points_idx_for_clusters, sum_distance_vec] = k_means_with_plus_plus(targets_position_float, num_cluster, number_of_iterations);
@@ -359,6 +360,105 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
             // cluster_assigned_idx stores the cluster index for each agent
             // cluster_assigned_idx[3] = 5 means Cluster 5 is assigned to Agent 3
             cluster_assigned_idx[j] = i;
+            }
+        }
+    }
+
+    return {cluster_centers, points_idx_for_clusters, cluster_assigned_idx};
+}
+
+
+inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::vector<int> > AssignClusterExternalCentroids(
+    std::vector<int>& agent_position,
+    std::vector<int>& targets_position,
+    const std::vector<float>& centroids_prev,
+    const size_t& num_cluster,
+    const size_t& number_of_iterations)
+{
+    // convert vector<int> to vector<float>
+    std::vector<float> targets_position_float(targets_position.begin(), targets_position.end());
+    // K-means clustering
+    auto [cluster_centers, assignments, points_idx_for_clusters, sum_distance_vec] = k_means_with_external_centroids(targets_position_float, num_cluster, number_of_iterations, centroids_prev);
+    size_t num_agents = agent_position.size()/2;
+
+    // the available cluster index vector; if cluster_centers[2*idx] < 0, no cluster
+    std::vector<size_t> cluster_available_idx_vec;
+    size_t num_cluster_available = 0;
+    for (size_t idx = 0; idx < num_cluster; ++idx) {
+        if (cluster_centers[2*idx] >= 0) {
+            cluster_available_idx_vec.push_back(idx);
+            num_cluster_available++;
+        }
+    }
+
+
+    // Solver
+    // Create the mip solver with the SCIP backend.
+    std::unique_ptr<MPSolver> solver(MPSolver::CreateSolver("SCIP"));
+
+    // Create binary integer variables
+    // x[i][j] is an array of 0-1 variables, which will be 1 if agent i is assigned to cluster j.
+    std::vector<std::vector<const MPVariable*>> x(num_agents, std::vector<const MPVariable*>(num_cluster_available));
+
+    // Create the objective function
+    MPObjective* const objective = solver->MutableObjective();
+
+    for (size_t i = 0; i < num_agents; ++i) {
+        // Create the constraints
+        // Each agent is assigned to at most one cluster.
+        LinearExpr agent_sum;
+
+        for (size_t j = 0; j < num_cluster_available; ++j) {
+            // for binary integer variables
+            x[i][j] = solver->MakeIntVar(0, 1, "");
+            
+            // for constraints
+            agent_sum += x[i][j];
+
+            // distance btw an agent and a cluster, plus WCSS (within cluster sum of squares)
+            float cost = std::sqrt(std::pow(static_cast<float>(agent_position[2*i])-cluster_centers[2*cluster_available_idx_vec[j]], 2) + 
+                                   std::pow(static_cast<float>(agent_position[2*i+1])-cluster_centers[2*cluster_available_idx_vec[j]+1], 2)) + 
+                         sum_distance_vec[cluster_available_idx_vec[j]];
+
+            // for the objective function
+            objective->SetCoefficient(x[i][j], cost);
+        }
+
+        // for constraints
+        solver->MakeRowConstraint(agent_sum <= 1.0);
+    }
+    objective->SetMinimization();
+
+    // Each cluster is assigned to exactly one agent.
+    for (size_t j = 0; j < num_cluster_available; ++j) {
+        LinearExpr cluster_sum;
+        for (size_t i = 0; i < num_agents; ++i) {
+            cluster_sum += x[i][j];
+        }
+        solver->MakeRowConstraint(cluster_sum == 1.0);
+    }
+
+    // cluster_assigned_idx stores the cluster index for each agent, all indices start from 0
+    // cluster_assigned_idx[3] = 5 means Cluster 5 is assigned to Agent 3
+    // -1 means this agent does not have a cluster
+    std::vector<int> cluster_assigned_idx(num_agents, -1);
+
+    // Solve
+    const MPSolver::ResultStatus result_status = solver->Solve();
+
+    // Print solution.
+    // Check that the problem has a feasible solution.
+    if ( result_status != MPSolver::OPTIMAL && result_status != MPSolver::FEASIBLE ) {
+        LOG(FATAL) << "No solution found.";
+    }
+
+    // LOG(INFO) << "Total cost = " << objective->Value() << "\n\n";
+
+    for (size_t i = 0; i < num_agents; ++i) {
+        for (size_t j = 0; j < num_cluster_available; ++j) {
+            // Test if x[i][j] is 0 or 1 (with tolerance for floating point arithmetic).
+            if (x[i][j]->solution_value() > 0.5) {
+                cluster_assigned_idx[i] = cluster_available_idx_vec[j];
             }
         }
     }
@@ -578,38 +678,70 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > SolveOne
 }
 
 
+template <typename T>
 inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > mission_planning_one_agent(
     const size_t &idx_agent, const std::vector<int> &agent_position, const std::vector<int> &targets_position,
-    const std::vector<size_t> &cluster_assigned_idx, const std::vector<std::vector<size_t>> &points_idx_for_clusters,
+    const std::vector<T> &cluster_assigned_idx, const std::vector<std::vector<size_t>> &points_idx_for_clusters,
     const std::vector<int> &Map, const int &mapSizeX, const int &mapSizeY)
 {
     // the index of assigned cluster for every agent
     // [2, 0, 1] indicates that agent-0 with cluster-2, agent-1 with cluster-0, agent-2 with cluster-1
-    size_t cluster_idx = cluster_assigned_idx[idx_agent];
+    T cluster_idx = cluster_assigned_idx[idx_agent];
 
-    // each agent's position
-    std::vector<int> agent_position_each_agent {agent_position[2*idx_agent], agent_position[2*idx_agent+1]};
-
-    // number of targets for each agent
-    size_t num_targets_each_agent = points_idx_for_clusters[cluster_idx].size();
-
-    std::vector<int> targets_position_each_agent(2*num_targets_each_agent);
-
-    for (size_t j = 0; j < num_targets_each_agent; ++j) {
-        size_t target_id = points_idx_for_clusters[cluster_idx][j];
-        targets_position_each_agent[2*j] = targets_position[2*target_id];
-        targets_position_each_agent[2*j+1] = targets_position[2*target_id+1];
-    }
-
-    // remember to add other agents as obstacles
-    std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > result_tuple_one_agent;
     std::vector<std::vector<int>> path_many_each_agent;
     std::vector<size_t> target_idx_order;
 
-    if (num_targets_each_agent > 0) {
-        result_tuple_one_agent = SolveOneAgent(agent_position_each_agent, targets_position_each_agent, Map, mapSizeX, mapSizeY);
-        std::tie(path_many_each_agent, target_idx_order) = result_tuple_one_agent;
+    if (cluster_idx >= -0.5) {
+
+        // each agent's position
+        std::vector<int> agent_position_each_agent {agent_position[2*idx_agent], agent_position[2*idx_agent+1]};
+
+        // number of targets for each agent
+        size_t num_targets_each_agent = points_idx_for_clusters[cluster_idx].size();
+
+        std::vector<int> targets_position_each_agent(2*num_targets_each_agent);
+
+        for (size_t j = 0; j < num_targets_each_agent; ++j) {
+            size_t target_id = points_idx_for_clusters[cluster_idx][j];
+            targets_position_each_agent[2*j] = targets_position[2*target_id];
+            targets_position_each_agent[2*j+1] = targets_position[2*target_id+1];
+        }
+
+        // remember to add other agents as obstacles (this is the buffered version)
+        // copy map to revise it for each thread
+        std::vector<int> MapNew = Map;
+        for (size_t idx_agent_ = 0; idx_agent_ < agent_position.size()/2; ++idx_agent_) {
+            [[likely]] if (idx_agent_ != idx_agent) {
+
+                // buffering the surrounding cells as well
+                int x = agent_position[2*idx_agent_];
+                int y = agent_position[2*idx_agent_+1];
+
+                int half_length_x = 1;
+                int half_length_y = 1;
+
+                int x_min = std::max(0, x-half_length_x);
+                int x_max = std::min(mapSizeX-1, x+half_length_x);
+                int y_min = std::max(0, y-half_length_y);
+                int y_max = std::min(mapSizeY-1, y+half_length_y);
+
+                for (int idx_x = x_min; idx_x < x_max+1; ++idx_x )
+                    {
+                        for (int idx_y = y_min; idx_y < y_max+1; ++idx_y )
+                            MapNew[idx_y * mapSizeX + idx_x] = 255;
+                    }
+            }
+        }
+
+        std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > result_tuple_one_agent;
+
+        if (num_targets_each_agent > 0) {
+            result_tuple_one_agent = SolveOneAgent(agent_position_each_agent, targets_position_each_agent, MapNew, mapSizeX, mapSizeY);
+            std::tie(path_many_each_agent, target_idx_order) = result_tuple_one_agent;
+        }
+
     }
+
     // if no tasks assigned to this agent, target_idx_order is empty vectors
     return {path_many_each_agent, target_idx_order};
 }
@@ -659,7 +791,7 @@ inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::
     std::vector<std::future< std::tuple<std::vector<std::vector<int>>, std::vector<size_t>> >> vec_async_op;
 
     for (size_t idx_agent = 0; idx_agent < num_agents; ++idx_agent) {
-        vec_async_op.push_back(std::async(std::launch::async, &mission_planning_one_agent, idx_agent, agent_position, targets_position,
+        vec_async_op.push_back(std::async(std::launch::async, &mission_planning_one_agent<size_t>, idx_agent, agent_position, targets_position,
             cluster_assigned_idx, points_idx_for_clusters, Map, mapSizeX, mapSizeY));
     }
 
@@ -691,6 +823,88 @@ inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::
 }
 
 
+/*
+MissionPlanningIteratively: for multiple agents, segment targets into clusters by K-means Clustering first
+    (the initialization of centroids is from external/previous centroids),
+    then assign clusters to agents, and run SolveOneAgent for each agent with multithreading to
+    have the collision-free path and task allocation result. 
+
+Input:
+    agent_position: 1D integer array [x0,y0, x1,y1, x2,y2, ...] for the agents positions
+    targets_position: 1D integer array [x0,y0, x1,y1, x2,y2, ...] for the targets positions
+    num_cluster: positive integer for number of clusters you want to have for K-means Clustering
+    number_of_iterations: positive integer for number of iterations for K-means Clustering
+    Map: 1D integer array for the map, flattened by a 2D array map; 0 for no obstacles, 255 for obstacles
+    mapSizeX: integer for the width of the map
+    mapSizeY: integer for the height of the map
+
+Output:
+    task_allocation_agents: 2D integer array, each sub-array is the task allocation for an agent
+        exmaple: task_allocation_agents[1] = [0, 3, 2, 1] means the task allocation order for Agent 1 is
+        T0 -> T3 -> T2 -> T1, where Agent 1 is the second agent, T0 is the first task
+*/
+inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::vector<size_t>>,
+    std::vector<float>, std::vector<std::vector<size_t>>, std::vector<int> > MissionPlanningIteratively(
+    std::vector<int>& agent_position,
+    std::vector<int>& targets_position,
+    const std::vector<float>& centroids_prev,
+    const size_t& num_cluster,
+    const size_t& number_of_iterations,
+    const std::vector<int> &Map,
+    const int &mapSizeX,
+    const int &mapSizeY)
+{
+    size_t num_agents = agent_position.size()/2;
+    // std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::vector<int> >
+    auto [cluster_centers, points_idx_for_clusters, cluster_assigned_idx] = AssignClusterExternalCentroids(agent_position, targets_position, centroids_prev, num_cluster, number_of_iterations);
+
+    // a 3D vector, each sub 2D vector is the path for each agent
+    std::vector<std::vector<std::vector<int>>> path_all_agents;
+
+    // a 2D vector, each sub 1D vector indicates the task allocation order for each agent
+    // note that this index is for local target set
+    std::vector<std::vector<size_t>> task_allocation_agents_local;
+
+    // a vector of result of asynchronous operations
+    std::vector<std::future< std::tuple<std::vector<std::vector<int>>, std::vector<size_t>> >> vec_async_op;
+
+    for (size_t idx_agent = 0; idx_agent < num_agents; ++idx_agent) {
+        vec_async_op.push_back(std::async(std::launch::async, &mission_planning_one_agent<int>, idx_agent, agent_position, targets_position,
+            cluster_assigned_idx, points_idx_for_clusters, Map, mapSizeX, mapSizeY));
+    }
+
+    for (auto &async_op : vec_async_op) {
+        std::tuple<std::vector<std::vector<int>>, std::vector<size_t>> result_tuple_one_agent = async_op.get();
+        path_all_agents.push_back(std::get<0>(result_tuple_one_agent));
+        task_allocation_agents_local.push_back(std::get<1>(result_tuple_one_agent));
+    }
+
+    // convert the local target index to the global target index
+    std::vector<std::vector<size_t>> task_allocation_agents;
+    for (size_t idx_agent = 0; idx_agent < num_agents; ++idx_agent) {
+        // the cluster index for current agent
+        int cluster_idx_this = cluster_assigned_idx[idx_agent];
+        // the global target index vector for current agent
+        std::vector<size_t> task_allocation_this;
+
+        // if there is a cluster assigned to this agent
+        if (cluster_idx_this >= -0.5) {
+            // the associated targets set/pool
+            std::vector<size_t> targets_pool_this = points_idx_for_clusters[cluster_idx_this];
+            for (size_t i = 0; i < targets_pool_this.size(); ++i) {
+                // the global target index
+                size_t task_id_this = task_allocation_agents_local[idx_agent][i];
+                // bundle this index by a given sequence
+                task_allocation_this.push_back(targets_pool_this[task_id_this]);
+            }
+        }
+        task_allocation_agents.push_back(task_allocation_this);
+    }
+
+    return {path_all_agents, task_allocation_agents, cluster_centers, points_idx_for_clusters, cluster_assigned_idx};
+}
+
+
 inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::vector<size_t>> > MissionPlanningWithClustering(
     std::vector<int>& agent_position,
     std::vector<int>& targets_position,
@@ -713,7 +927,7 @@ inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::
     std::vector<std::future< std::tuple<std::vector<std::vector<int>>, std::vector<size_t>> >> vec_async_op;
 
     for (size_t idx_agent = 0; idx_agent < num_agents; ++idx_agent) {
-        vec_async_op.push_back(std::async(std::launch::async, &mission_planning_one_agent, idx_agent, agent_position, targets_position,
+        vec_async_op.push_back(std::async(std::launch::async, &mission_planning_one_agent<size_t>, idx_agent, agent_position, targets_position,
             cluster_assigned_idx, points_idx_for_clusters, Map, mapSizeX, mapSizeY));
     }
 
@@ -931,6 +1145,8 @@ inline PYBIND11_MODULE(DrMaMP, module) {
     module.def("AssignCluster", &AssignCluster, "K-means Clustering first, then assign clusters to agents, #clusters >= #agents");
 
     module.def("MissionPlanning", &MissionPlanning, "K-means Clustering, then assign clusters to agents, and run SolveOneAgent for each agent (with multithreading)");
+
+    module.def("MissionPlanningIteratively", &MissionPlanningIteratively, "K-means Clustering with previous centroids, then assign clusters to agents, and run SolveOneAgent for each agent (with multithreading)");
 
     module.def("MissionPlanningWithClustering", &MissionPlanningWithClustering, "Run SolveOneAgent for each agent (with multithreading) given a clustering result");
 

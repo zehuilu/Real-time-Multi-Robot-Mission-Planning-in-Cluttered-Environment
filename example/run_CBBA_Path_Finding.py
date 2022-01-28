@@ -36,14 +36,14 @@ if __name__ == "__main__":
         agent_position, targets_position, Simulator, cbba_config_file_name, plot_flag=True)
 
     # plot for a single agent
-    Simulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
+    Simulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
 
-    # For Simulator.plot_path_multi_agent(), each sub list of the input argument
+    # For Simulator.plot_paths(), each sub list of the input argument
     # task_allocation_result_many_agents is the task allocation order for each agent.
     # The first entry is the index of agent.
     for idx in range(len(task_allocation_list)):
         task_allocation_list[idx].insert(0, idx)
     # plot for many agents
-    Simulator.plot_path_multi_agent(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
+    Simulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
 
     plt.show()

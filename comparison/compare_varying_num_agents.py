@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     # fix the average number of targets per agent
     num_targets_per_agent = 6
-    max_num_agents = 15
+    max_num_agents = 17
     num_run = 50
     run_cbba_flag = False
     run_ga_flag = True
@@ -141,6 +141,8 @@ if __name__ == "__main__":
         # set legends
         colors = ["blue", "red", "green"]
         labels = ["Proposed", "CBBA", "K-GA"]
+        # colors = ["blue", "red"]
+        # labels = ["Proposed", "CBBA"]
         f = lambda c: plt.plot([],[], color=c)[0]
         handles = [f(colors[i]) for i in range(len(labels))]
         legend = plt.legend(handles, labels, loc='upper left', framealpha=1)
@@ -170,6 +172,8 @@ if __name__ == "__main__":
         # set legends
         colors = ["blue", "red", "green"]
         labels = ["Proposed", "CBBA", "K-GA"]
+        # colors = ["blue", "red"]
+        # labels = ["Proposed", "CBBA"]
         f = lambda c: plt.plot([],[], color=c)[0]
         handles = [f(colors[i]) for i in range(len(labels))]
         legend = plt.legend(handles, labels, loc='upper left', framealpha=1)

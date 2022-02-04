@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <random>
 #include <typeinfo>
-#include "ga_solver.hpp"
+#include "../include/ga_solver.hpp"
 
 
 int main()

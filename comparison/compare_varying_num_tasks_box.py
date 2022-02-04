@@ -36,9 +36,9 @@ if __name__ == "__main__":
     # fix the number of agents
     num_agents = 3
     max_num_targets_per_agent = 12
-    num_run = 20
+    num_run = 10
     run_cbba_flag = True
-    run_ga_flag = False
+    run_ga_flag = True
 
     # some hyper-parameters for Genetic Algorithm
     population_size = 25

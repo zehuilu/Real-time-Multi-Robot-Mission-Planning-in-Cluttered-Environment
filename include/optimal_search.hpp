@@ -144,7 +144,7 @@ inline float permutation_num_task(const int num_agent, const int num_task, int a
     }
     int* task_index = task_index_vec.data();
 
-    int percent = 0;
+    // int percent = 0;
     while (true) {
         // std::cout << case_count << "/" << expect_case << "\n";
         // move one task to tail

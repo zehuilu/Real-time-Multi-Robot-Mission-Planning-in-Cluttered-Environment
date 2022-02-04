@@ -2,8 +2,8 @@
 #include <vector>
 #include <array>
 #include <chrono>
-#include "tileadaptor.hpp"
-#include "solve_test.hpp"
+#include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/tileadaptor.hpp"
+#include "../include/solve_test.hpp"
 
 
 int main()

@@ -7,7 +7,7 @@ with pathmagic.context():
     from Simulator import Simulator
     import DrMaMP
     import CBBA_Path_Finding
-    import OptimalSearchV2
+    import OptimalSearch
     import GA_Solver
     from compute_path_distance import compute_path_distance_many_agents
 
@@ -34,8 +34,8 @@ if __name__ == "__main__":
     world_map = MySimulator.map_array.flatten().tolist()
 
     # generate agents and targets randomly
-    num_agents = 8
-    num_targets = 40
+    num_agents = 2
+    num_targets = 6
     agent_position, targets_position = MySimulator.generate_agents_and_targets(num_agents, num_targets)
 
     # parameters for my algorithm
@@ -91,21 +91,26 @@ if __name__ == "__main__":
     t1 = time.time()
     print("K-GA time used [sec]:" + str(t1 - t0))
     print("K-GA cost: ", cost)
+    my_distance, my_distance_list = compute_path_distance_many_agents(path_all_agents)
+    print("K-GA total distance: ", my_distance)
+    print("path_all_agents")
+    print(path_all_agents)
+
     for idx in range(len(task_order_all)):
         task_order_all[idx].insert(0, idx)
     # plot
     MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_order_all, cluster_centers, points_idx_for_clusters)
 
 
-    # # Optimal Search V2
-    # t0 = time.time()
-    # # solve it
-    # solution, optimal_cost = OptimalSearchV2.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
-    # t1 = time.time()
-    # print("Optimal Search time used [sec]:" + str(t1 - t0))
-    # print("Optimal Search cost: ", cost)
-    # print("Optimal solution")
-    # print(solution)
+    # Optimal Search
+    t0 = time.time()
+    # solve it
+    solution, optimal_cost = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
+    t1 = time.time()
+    print("Optimal Search time used [sec]:" + str(t1 - t0))
+    print("Optimal Search cost: ", cost)
+    print("Optimal solution")
+    print(solution)
 
 
     plt.show()

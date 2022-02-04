@@ -5,9 +5,9 @@
 #include <vector>
 #include <array>
 #include <tuple>
-#include "tileadaptor.hpp"
-#include "utility.hpp"
-#include "get_combination.hpp"
+#include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/tileadaptor.hpp"
+#include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/utility.hpp"
+#include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/get_combination.hpp"
 
 
 #include "ortools/constraint_solver/routing.h"
@@ -162,18 +162,6 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<float>, std::vecto
 
     // Print solution on console.
     PrintSolution(manager, routing, *solution);
-
-
-
-
-
-
-
-
-
-
-
-
 
     return {path_many, distances_many, distance_matrix};
 }

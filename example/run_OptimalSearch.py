@@ -5,7 +5,6 @@ import pathmagic
 with pathmagic.context():
     from Simulator import Simulator
     import OptimalSearch
-    import OptimalSearchV2
 
 
 if __name__ == "__main__":
@@ -35,18 +34,7 @@ if __name__ == "__main__":
     # solve it
     solution, optimal_cost = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
     t1 = time.time()
-    print("V1 Time used [sec]:" + str(t1 - t0))
-
-    print("solution")
-    print(solution)
-    print("optimal_cost")
-    print(optimal_cost)
-
-    t0 = time.time()
-    # solve it
-    solution, optimal_cost = OptimalSearchV2.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
-    t1 = time.time()
-    print("V2 Time used [sec]:" + str(t1 - t0))
+    print("Optimal Search Time used [sec]:" + str(t1 - t0))
 
     print("solution")
     print(solution)
@@ -56,4 +44,3 @@ if __name__ == "__main__":
     # visualization
     MySimulator.plot_paths([], agent_position, targets_position, [], [], [])
     plt.show()
-

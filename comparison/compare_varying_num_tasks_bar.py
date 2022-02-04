@@ -32,22 +32,18 @@ if __name__ == "__main__":
     # convert 2D numpy array to 1D list
     world_map = MySimulator.map_array.flatten().tolist()
 
-    # fix the average number of targets per agent
-    num_targets_per_agent = 6
-    max_num_agents = 8
+    # fix the number of agents
+    num_agents = 3
+    max_num_targets_per_agent = 12
     num_run = 10
     run_cbba_flag = True
-
-    # some hyper-parameters for Genetic Algorithm
-    population_size = 25
-    max_iter = 25
 
     time_used_list_all_cases_my = []
     time_used_list_all_cases_cbba = []
     distance_list_all_cases_my = []
     distance_list_all_cases_cbba = []
     xticks_str_list = []
-    for num_agents in range (2, max_num_agents+1, 3):
+    for num_targets_per_agent in range (2, max_num_targets_per_agent+1, 3):
         time_used_list_single_case_my = []
         time_used_list_single_case_cbba = []
         distance_list_single_case_my = []
@@ -90,8 +86,8 @@ if __name__ == "__main__":
         time_used_list_all_cases_cbba.append(time_used_list_single_case_cbba)
         distance_list_all_cases_my.append(distance_list_single_case_my)
         distance_list_all_cases_cbba.append(distance_list_single_case_cbba)
-        xticks_str_list.append(str(num_agents))
-        print(num_agents)
+        xticks_str_list.append(str(num_agents * num_targets_per_agent))
+        print(num_targets_per_agent)
 
     xticks_list = range(1, len(time_used_list_all_cases_my)+1)
 
@@ -119,13 +115,13 @@ if __name__ == "__main__":
     if run_cbba_flag:
         # create box plot for both algorithm
         fig1, ax1 = plt.subplots()
-        ax1.set_title('Computing time, num_targets_per_agent = ' + str(num_targets_per_agent))
+        ax1.set_title('Computing time, num_agents = ' + str(num_agents))
         # create plot
         x_pos = np.array(range(len(time_used_list_all_cases_my)))*2.0-0.2
         ax1.bar(x_pos, mean_time_my, yerr=std_time_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
         x_pos = np.array(range(len(time_used_list_all_cases_cbba)))*2.0+0.2
         ax1.bar(x_pos, mean_time_cbba, yerr=std_time_cbba, color='red', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-        ax1.set_xlabel('Number of agents')
+        ax1.set_xlabel('Number of targets')
         ax1.set_ylabel('Computing time [ms]')
         ax1.yaxis.grid(True)
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
@@ -139,13 +135,13 @@ if __name__ == "__main__":
 
         # create box plot about total distance for both algorithm
         fig2, ax2 = plt.subplots()
-        ax2.set_title('Total distance, num_targets_per_agent = ' + str(num_targets_per_agent))
+        ax2.set_title('Total distance, num_agents = ' + str(num_agents))
         # create plot
         x_pos = np.array(range(len(distance_list_all_cases_my)))*2.0-0.2
         ax2.bar(x_pos, mean_distance_my, yerr=std_distance_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
         x_pos = np.array(range(len(distance_list_all_cases_cbba)))*2.0+0.2
         ax2.bar(x_pos, mean_distance_cbba, yerr=std_distance_cbba, color='red', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-        ax2.set_xlabel('Number of agents')
+        ax2.set_xlabel('Number of targets')
         ax2.set_ylabel('Total distance')
         ax2.yaxis.grid(True)
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
@@ -159,10 +155,10 @@ if __name__ == "__main__":
 
     # create box plot for my algorithm
     fig3, ax3 = plt.subplots()
-    ax3.set_title('Computing time for proposed, num_targets_per_agent = ' + str(num_targets_per_agent))
+    ax3.set_title('Computing time for proposed, num_agents = ' + str(num_agents))
     # create plot
     ax3.bar(xticks_list, mean_time_my, yerr=std_time_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-    ax3.set_xlabel('Number of agents')
+    ax3.set_xlabel('Number of targets')
     ax3.set_ylabel('Computing time [ms]')
     ax3.yaxis.grid(True)
     plt.xticks(xticks_list, xticks_str_list)
@@ -175,10 +171,10 @@ if __name__ == "__main__":
 
 
     fig4, ax4 = plt.subplots()
-    ax4.set_title('Total distance for proposed, num_targets_per_agent = ' + str(num_targets_per_agent))
+    ax4.set_title('Total distance for proposed, num_agents = ' + str(num_agents))
     # create plot
     ax4.bar(xticks_list, mean_distance_my, yerr=std_distance_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-    ax4.set_xlabel('Number of agents')
+    ax4.set_xlabel('Number of targets')
     ax4.set_ylabel('Total distance')
     ax4.yaxis.grid(True)
     plt.xticks(xticks_list, xticks_str_list)

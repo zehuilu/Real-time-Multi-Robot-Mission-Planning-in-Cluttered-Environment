@@ -12,12 +12,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "tileadaptor.hpp"
-#include "utility.hpp"
-#include "get_combination.hpp"
-#include "k_means.hpp"
-#include "k_means_with_plus_plus.hpp"
-#include "k_means_with_external_centroids.hpp"
+#include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/tileadaptor.hpp"
+#include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/utility.hpp"
+#include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/get_combination.hpp"
+#include "../include/k_means.hpp"
+#include "../include/k_means_with_plus_plus.hpp"
+#include "../include/k_means_with_external_centroids.hpp"
 
 #include "ortools/constraint_solver/routing.h"
 #include "ortools/constraint_solver/routing_enums.pb.h"
@@ -87,8 +87,8 @@ Output:
     distance: 1D float array for all the distances of the paths
 */
 inline std::tuple<std::vector<std::vector<int>>, std::vector<float>> FindPathOneByOne(
-    std::vector<int> &agent_position,
-    std::vector<int> &targets_position,
+    const std::vector<int> &agent_position,
+    const std::vector<int> &targets_position,
     const std::vector<int> &Map,
     const int &mapSizeX,
     const int &mapSizeY)
@@ -108,9 +108,9 @@ inline std::tuple<std::vector<std::vector<int>>, std::vector<float>> FindPathOne
     if (targets_position.size() > 0) {
         // start is agent_position, goal is the first two elements of targets_position, doing the search
         // output: std::tuple<std::vector<int>, float>
-        auto [Path, Distance] = pathfinder.search(agent_position[1]*mapSizeX+agent_position[0], targets_position[1]*mapSizeX+targets_position[0], mapSize);
-        path_many.push_back(Path);
-        distances_many.push_back(Distance);
+        auto [path, distance] = pathfinder.search(agent_position[1]*mapSizeX+agent_position[0], targets_position[1]*mapSizeX+targets_position[0], mapSize);
+        path_many.push_back(path);
+        distances_many.push_back(distance);
 
         // Regenerate the neighbors for next run
         // if (idx < start_goal_pair.size()-1)
@@ -125,9 +125,9 @@ inline std::tuple<std::vector<std::vector<int>>, std::vector<float>> FindPathOne
 
             // start is the previous target, goal is the current target, doing the search
             // output: std::tuple<std::vector<int>, float>
-            auto [Path, Distance] = pathfinder.search(start[1]*mapSizeX+start[0], goal[1]*mapSizeX+goal[0], mapSize);
-            path_many.push_back(Path);
-            distances_many.push_back(Distance);
+            auto [path, distance] = pathfinder.search(start[1]*mapSizeX+start[0], goal[1]*mapSizeX+goal[0], mapSize);
+            path_many.push_back(path);
+            distances_many.push_back(distance);
 
             // Regenerate the neighbors for next run
             pathfinder.generateNodes();
@@ -155,8 +155,8 @@ Output:
     distance: 1D float array for all the distances of the paths
 */
 inline std::tuple<std::vector<std::vector<int>>, std::vector<float>> FindPathMany(
-    std::vector<int> &agent_position,
-    std::vector<int> &targets_position,
+    const std::vector<int> &agent_position,
+    const std::vector<int> &targets_position,
     const std::vector<int> &Map,
     const int &mapSizeX,
     const int &mapSizeY)
@@ -199,10 +199,10 @@ inline std::tuple<std::vector<std::vector<int>>, std::vector<float>> FindPathMan
 
         // doing the search
         // output: std::tuple<std::vector<int>, float>
-        // when infeasible, Path is empty, Distance = 0
-        auto [Path, Distance] = pathfinder.search(start[1]*mapSizeX+start[0], goal[1]*mapSizeX+goal[0], mapSize);
-        path_many.push_back(Path);
-        distances_many.push_back(Distance);
+        // when infeasible, path is empty, distance = 0
+        auto [path, distance] = pathfinder.search(start[1]*mapSizeX+start[0], goal[1]*mapSizeX+goal[0], mapSize);
+        path_many.push_back(path);
+        distances_many.push_back(distance);
 
         // Regenerate the neighbors for next run
         // if (idx < start_goal_pair.size()-1)
@@ -228,11 +228,11 @@ Output:
     distance: float for the total distance of the path
 */
 inline std::tuple<std::vector<int>, float> FindPath(
-    std::vector<int> &startPoint,
-    std::vector<int> &endPoint,
-    std::vector<int> &Map,
-    int &mapSizeX,
-    int &mapSizeY)
+    const std::vector<int> &startPoint,
+    const std::vector<int> &endPoint,
+    const std::vector<int> &Map,
+    const int &mapSizeX,
+    const int &mapSizeY)
 {
     // Instantiating our path adaptor
     // passing the map size, and the map
@@ -251,14 +251,14 @@ inline std::tuple<std::vector<int>, float> FindPath(
     // as it would have been way easier to simply transform the vector to id and pass it to search
 
     // output: std::tuple<std::vector<int>, float>
-    // auto [Path, Distance] = pathfinder.search(startPoint[1]*mapSizeX+startPoint[0], endPoint[1]*mapSizeX+endPoint[0], mapSize);
+    // auto [path, distance] = pathfinder.search(startPoint[1]*mapSizeX+startPoint[0], endPoint[1]*mapSizeX+endPoint[0], mapSize);
 
     return pathfinder.search(startPoint[1]*mapSizeX+startPoint[0], endPoint[1]*mapSizeX+endPoint[0], mapSize);
 }
 
 
 inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vector<size_t>>, std::vector<float> > KMeans(
-    std::vector<int>& targets_position,
+    const std::vector<int>& targets_position,
     const size_t& num_cluster,
     const size_t& number_of_iterations)
 {
@@ -268,8 +268,8 @@ inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vec
 
 
 inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::vector<size_t> > AssignCluster(
-    std::vector<int>& agent_position,
-    std::vector<int>& targets_position,
+    const std::vector<int>& agent_position,
+    const std::vector<int>& targets_position,
     const size_t& num_cluster,
     const size_t& number_of_iterations)
 {
@@ -281,15 +281,14 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
 
     // Solver
     // Create the mip solver with the SCIP backend.
-    // *****************************************************************This line takes most of the time!!!
-    MPSolver solver("assignment_mip", MPSolver::SCIP_MIXED_INTEGER_PROGRAMMING);
+    std::unique_ptr<MPSolver> solver(MPSolver::CreateSolver("SCIP"));
 
     // Create binary integer variables
     // x[i][j] is an array of 0-1 variables, which will be 1 if cluster i is assigned to agent j.
     std::vector<std::vector<const MPVariable*>> x(num_cluster, std::vector<const MPVariable*>(num_agents));
 
     // Create the objective function
-    MPObjective* const objective = solver.MutableObjective();
+    MPObjective* const objective = solver->MutableObjective();
 
     for (size_t i = 0; i < num_cluster; ++i) {
         // Create the constraints
@@ -298,7 +297,7 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
 
         for (size_t j = 0; j < num_agents; ++j) {
             // for binary integer variables
-            x[i][j] = solver.MakeIntVar(0, 1, "");
+            x[i][j] = solver->MakeIntVar(0, 1, "");
             
             // for constraints
             cluster_sum += x[i][j];
@@ -318,7 +317,7 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
         }
 
         // for constraints
-        solver.MakeRowConstraint(cluster_sum <= 1.0);
+        solver->MakeRowConstraint(cluster_sum <= 1.0);
     }
     // for constraints
     objective->SetMinimization();
@@ -329,13 +328,13 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
         for (size_t i = 0; i < num_cluster; ++i) {
             agent_sum += x[i][j];
         }
-        solver.MakeRowConstraint(agent_sum == 1.0);
+        solver->MakeRowConstraint(agent_sum == 1.0);
     }
 
     std::vector<size_t> cluster_assigned_idx(num_agents);
 
     // Solve
-    const MPSolver::ResultStatus result_status = solver.Solve();
+    const MPSolver::ResultStatus result_status = solver->Solve();
 
     // Print solution.
     // Check that the problem has a feasible solution.
@@ -369,8 +368,8 @@ inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::ve
 
 
 inline std::tuple< std::vector<float>, std::vector<std::vector<size_t>>, std::vector<int> > AssignClusterExternalCentroids(
-    std::vector<int>& agent_position,
-    std::vector<int>& targets_position,
+    const std::vector<int>& agent_position,
+    const std::vector<int>& targets_position,
     const std::vector<float>& centroids_prev,
     const size_t& num_cluster,
     const size_t& number_of_iterations)
@@ -486,8 +485,8 @@ Output:
         where T0 is the first task.
 */
 inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > SolveOneAgent(
-    std::vector<int> &agent_position,
-    std::vector<int> &targets_position,
+    const std::vector<int> &agent_position,
+    const std::vector<int> &targets_position,
     const std::vector<int> &Map,
     const int &mapSizeX,
     const int &mapSizeY)
@@ -534,23 +533,23 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > SolveOne
             goal[1] = agent_position[1];
         }
 
-        // doing the search, when infeasible, Path is empty, Distance = 0
-        // when start = goal, Path = start and Distance is empty
+        // doing the search, when infeasible, path is empty, distance = 0
+        // when start = goal, path = start and distance is empty
         // std::vector<int>, float
-        auto [Path, Distance] = pathfinder.search(start[1]*mapSizeX+start[0], goal[1]*mapSizeX+goal[0], mapSize);
+        auto [path, distance] = pathfinder.search(start[1]*mapSizeX+start[0], goal[1]*mapSizeX+goal[0], mapSize);
 
         // assign distance to distance matrix
         int i = num_nodes - 2 - floor(sqrt(-8*(idx/2) + 4*num_nodes*(num_nodes-1)-7)/2.0 - 0.5);
         int j = (idx/2) + i + 1 - (num_nodes*(num_nodes-1))/2 + ((num_nodes-i)*((num_nodes-i)-1))/2;
 
-        if (Path.size() > 2) {
-            distance_matrix[i][j] = static_cast<int64_t>( floor(SCALE_FACTOR * Distance) );
+        if (path.size() > 2) {
+            distance_matrix[i][j] = static_cast<int64_t>( floor(SCALE_FACTOR * distance) );
             distance_matrix[j][i] = distance_matrix[i][j];
         }
-        else if (Path.size() == 2) {
-            // when start = goal, let Path = {start, goal}, and Distance = 0
-            Path.push_back(Path[0]);
-            Path.push_back(Path[1]);
+        else if (path.size() == 2) {
+            // when start = goal, let path = {start, goal}, and distance = 0
+            path.push_back(path[0]);
+            path.push_back(path[1]);
             distance_matrix[i][j] = static_cast<int64_t>( floor(SCALE_FACTOR * 0.0) );
             distance_matrix[j][i] = distance_matrix[i][j];
         }
@@ -560,7 +559,7 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > SolveOne
             distance_matrix[j][i] = distance_matrix[i][j];
         }
 
-        path_many.push_back(Path);
+        path_many.push_back(path);
         
         // Regenerate the neighbors for next run
         // if (idx < start_goal_pair.size()-1)
@@ -768,8 +767,8 @@ Output:
 */
 inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::vector<size_t>>,
     std::vector<float>, std::vector<std::vector<size_t>>, std::vector<size_t> > MissionPlanning(
-    std::vector<int>& agent_position,
-    std::vector<int>& targets_position,
+    const std::vector<int>& agent_position,
+    const std::vector<int>& targets_position,
     const size_t& num_cluster,
     const size_t& number_of_iterations,
     const std::vector<int> &Map,
@@ -845,8 +844,8 @@ Output:
 */
 inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::vector<size_t>>,
     std::vector<float>, std::vector<std::vector<size_t>>, std::vector<int> > MissionPlanningIteratively(
-    std::vector<int>& agent_position,
-    std::vector<int>& targets_position,
+    const std::vector<int>& agent_position,
+    const std::vector<int>& targets_position,
     const std::vector<float>& centroids_prev,
     const size_t& num_cluster,
     const size_t& number_of_iterations,
@@ -906,10 +905,10 @@ inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::
 
 
 inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::vector<size_t>> > MissionPlanningWithClustering(
-    std::vector<int>& agent_position,
-    std::vector<int>& targets_position,
-    std::vector<std::vector<size_t>>& points_idx_for_clusters,
-    std::vector<size_t>& cluster_assigned_idx,
+    const std::vector<int>& agent_position,
+    const std::vector<int>& targets_position,
+    const std::vector<std::vector<size_t>>& points_idx_for_clusters,
+    const std::vector<size_t>& cluster_assigned_idx,
     const std::vector<int> &Map,
     const int &mapSizeX,
     const int &mapSizeY)
@@ -1018,12 +1017,10 @@ inline std::vector<std::vector<int>> path_planning_one_agent_many_tasks(
         // find the path, returned by std::tuple<std::vector<int>, float>
         auto [path, distance] = pathfinder.search(startPoint[1]*mapSizeX+startPoint[0], endPoint[1]*mapSizeX+endPoint[0], mapSize);
 
-
         // if the start == end, path only has [x0,y0], then make it empty
         if (path.size() < 4) {
             path = {};
         }
-
 
         // initialize the start point of next iteration as the end point of this iteration
         startPoint[0] = targets_position_this_agent[2*idx_target];
@@ -1038,8 +1035,8 @@ inline std::vector<std::vector<int>> path_planning_one_agent_many_tasks(
 
 
 inline std::vector<std::vector<std::vector<int>>> PathPlanningMultiAgent(
-    std::vector<int>& agent_position,
-    std::vector<std::vector<int>>& targets_position,
+    const std::vector<int>& agent_position,
+    const std::vector<std::vector<int>>& targets_position,
     const std::vector<int> &Map,
     const int &mapSizeX,
     const int &mapSizeY)
@@ -1070,8 +1067,8 @@ inline std::vector<std::vector<std::vector<int>>> PathPlanningMultiAgent(
 
 inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::vector<size_t>>, 
     std::vector<float>, std::vector<std::vector<size_t>>, std::vector<size_t> > MissionPlanning_legacy(
-    std::vector<int>& agent_position,
-    std::vector<int>& targets_position,
+    const std::vector<int>& agent_position,
+    const std::vector<int>& targets_position,
     const size_t& num_cluster,
     const size_t& number_of_iterations,
     const std::vector<int> &Map,

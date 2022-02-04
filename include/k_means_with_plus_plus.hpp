@@ -11,7 +11,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
-#include "k_means_plus_plus.hpp"
+#include "../include/k_means_plus_plus.hpp"
 
 
 // template <typename T> 

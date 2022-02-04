@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include "optimal_search.hpp"
+#include "../include/optimal_search.hpp"
 
 
 int main() {

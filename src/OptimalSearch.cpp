@@ -2,7 +2,7 @@
 #include <vector>
 #include <iterator>
 #include <tuple>
-#include "optimal_search.hpp"
+#include "../include/optimal_search.hpp"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

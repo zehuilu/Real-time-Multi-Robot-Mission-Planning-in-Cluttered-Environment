@@ -2,7 +2,7 @@
 #include <vector>
 #include <chrono>
 #include <tuple>
-#include "k_means.hpp"
+#include "../include/k_means.hpp"
 
 
 int main()

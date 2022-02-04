@@ -2,9 +2,9 @@
 #include <tuple>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include "k_means.hpp"
-#include "k_means_with_plus_plus.hpp"
-#include "k_means_with_external_centroids.hpp"
+#include "../include/k_means.hpp"
+#include "../include/k_means_with_plus_plus.hpp"
+#include "../include/k_means_with_external_centroids.hpp"
 
 
 inline std::tuple< std::vector<float>, std::vector<size_t>, std::vector<std::vector<size_t>> > KMeans(

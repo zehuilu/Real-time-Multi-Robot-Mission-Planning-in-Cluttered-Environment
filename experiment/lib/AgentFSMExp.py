@@ -1,74 +1,32 @@
 #!/usr/bin/env python3
 import math
 import copy
+import pathmagic
+with pathmagic.context():
+    import AgentFSM
 
-class State:
-    stateName: str  # the string for this state name
 
-    def __init__(self, stateName="State"):
-        """
-        Initialize a State object.
-        """
-        self.stateName = stateName
-
-    def printState(self):
-        """
-        Print the state name.
-        """
-        print("State: " + self.stateName)
-
-class Unassigned(State):
-    def __init__(self, stateName="Unassigned"):
-        """
-        Initialize an Unassigned State object.
-        """
-        State.__init__(self, stateName=stateName)
-
-class Assigned(State):
-    def __init__(self, stateName="Assigned"):
-        """
-        Initialize an Assigned State object.
-        """
-        State.__init__(self, stateName=stateName)
-
-class Completed(State):
-    def __init__(self, stateName="Completed"):
-        """
-        Initialize a Completed State object.
-        """
-        State.__init__(self, stateName=stateName)
-
-class Homing(State):
+class Homing(AgentFSM.State):
     def __init__(self, stateName="Homing"):
         """
         Initialize a Homing State object.
         """
-        State.__init__(self, stateName=stateName)
+        super(Homing, self).__init__(stateName=stateName)
 
-class End(State):
+class End(AgentFSM.State):
     def __init__(self, stateName="End"):
         """
         Initialize an End State object.
         """
-        State.__init__(self, stateName=stateName)
+        super(End, self).__init__(stateName=stateName)
 
-class AgentFSMExp:
+
+class AgentFSMExp(AgentFSM.AgentFSM):
     agentIdx: int  # the index for this agent
     distanceThreshold: float  # when distance between A and B < this number, we say A and B have same position
     StatesPool: dict  # a dictionary for all included State objects
-    numTargetTotal: int  # the number of targets in total
-    targetIdxNow: int  # the target index that is currently assigned to the agent
-    """
-    targetSetTotal: 2D list, a set of targets positions (in Qualisys coordinates) in total, [[x0,y0,z0], [x1,y1,z1], [x2,y2,z2], ...]
-    The execution order is target 0 -> target 1 -> target 2 -> ...
-    """
-    targetSetTotal: list
-    targetSetToDo: list  # a 2D list for a set of targets positions (in Qualisys coordinates) to do
-    """
-    targetSetOrder: a 1D list for the execution order of targets
-    Example: targetSetOrder = [0, 3, 1, 2] means the T0 -> T3 -> T1 -> T2
-    """
-    targetSetOrder: list
+    targetPosition: list  # 1D list for current target position (in Qualisys coordinates), [px, py, z0]
+    homePosition: list  # 1D list, home position (in Qualisys coordinates), [x0,y0,z0]
 
     def __init__(self, agentIdx=0, distanceThreshold=0.1):
         """
@@ -78,121 +36,81 @@ class AgentFSMExp:
             agentIdx: int, an integer for the agent index
             distanceThreshold: float, when distance between A and B < distanceThreshold, we say A and B have same position
         """
-        self.agentIdx = agentIdx
-        self.distanceThreshold = distanceThreshold
-        self.StatesPool = {"Unassigned": Unassigned(),
-                           "Assigned": Assigned(),
-                           "Completed": Completed(),
-                           "Homing": Homing(),
-                           "End": End()}
-        self.StateNow = self.StatesPool["Unassigned"]
-    
-    def initFSM(self, targetSetTotal: list, targetSetOrder=None):
+        super(AgentFSMExp, self).__init__(agentIdx, distanceThreshold)
+        self.StatesPool["Homing"] = Homing()
+        self.StatesPool["End"] = End()
+
+    def initFSM(self, targetPosition: list, homePosition: list):
         """
-        Initialize the Agent Finite State Machine by a set of targets positions that need to be done.
+        Initialize the Agent Finite State Machine by a target position.
 
         Input:
-            targetSetTotal: 2D list, a set of targets positions (in Qualisys coordinates) that need to be done,
-                [[x0,y0,z0], [x1,y1,z1], [x2,y2,z2], ...]. The execution order is target 0 -> target 1 -> target 2 -> ...
-            targetSetOrder: 1D list, the execution order of targets. If empty, [0, 1, 2, 3, ...]
-                Example: targetSetOrder = [0, 3, 1, 2] means the T0 -> T3 -> T1 -> T2
+            targetPosition: 1D list, a target position (in Qualisys coordinates) that need to be visited, [x0, y0, z0]. If no target, empty list.
+            homePosition: 1D list, home position (in Qualisys coordinates), [x0,y0,z0]
         """
         self.StateNow = self.StatesPool["Unassigned"]
-        self.targetSetTotal = copy.deepcopy(targetSetTotal)
-        self.targetSetToDo = copy.deepcopy(targetSetTotal)
-        self.targetSetOrder = copy.deepcopy(targetSetOrder)
-        self.numTargetTotal = len(targetSetTotal)
-        self.targetIdxNow = -1
+        self.targetPosition = copy.deepcopy(targetPosition)
+        self.homePosition = copy.deepcopy(homePosition)
 
-    def transition(self, agentPositionNow: list, targetSetTotal: list, homePosition: list, targetSetOrder=None):
+    def transition(self, agentPositionNow: list, targetPosition: list, targetAllFinishFlag: bool):
         """
-        Make state transition based on the current agent position and target set.
-        NOTE: this function ignores the distance in height axis.
+        Make state transition based on the current agent position and target position.
+        NOTE: this function ignores the distance in height (z-axis).
 
         Input:
             agentPositionNow: 1D list, current agent position (in Qualisys coordinates), [x0,y0,z0]
-            targetSetTotal: 2D list, a set of targets positions (in Qualisys coordinates) in total,
-                [[x0,y0,z0], [x1,y1,z1], [x2,y2,z2], ...]. The execution order is target 0 -> target 1 -> target 2 -> ...
-            homePosition: 1D list, home position (in Qualisys coordinates), [x0,y0,z0]
-            targetSetOrder: 1D list, the execution order of targets. If empty, [0, 1, 2, 3, ...]
-                Example: targetSetOrder = [0, 3, 1, 2] means the T0 -> T3 -> T1 -> T2
+            targetPosition: 1D list, current target position (in Qualisys coordinates), [px, py, z0]
+            targetAllFinishFlag: bool, True if all agents finish all the targets
 
         Output:
             stateName: str, the state name after the transition
-            targetSetToDoOutput: a 2D list, a set of targets positions to do, [[x0,y0,z0], [x1,y1,z1], [x2,y2,z2], ...]
+            targetFinishFlag: True if self.targetPosition is finished
         """
-        # when the state is "Homing", do nothing here.
-        # otherwise, check whether targetSetTotal is equal to the previous one (i.e., self.targetSetTotal)
-        # if not equal, initialize FSM
-        if self.StateNow.stateName != "Homing":
-            if targetSetTotal != self.targetSetTotal:
-                print("Target set or task allocation changed, initialized FSM.")
-                self.initFSM(targetSetTotal, targetSetOrder)
-            else:
-                # when targets are the same, but the execution order changed, update targetSetOrder
-                if targetSetOrder != self.targetSetOrder:
-                    self.targetSetOrder = copy.deepcopy(targetSetOrder)
-
-        # compute the distance between the current agent position and current target position
-        if self.targetIdxNow > -1:
-            if targetSetOrder:
-                # if targetSetOrder is not empty, follow the exact order
-                targetIdx = self.targetSetOrder[self.targetIdxNow]
-                targetPositionNow = self.targetSetTotal[targetIdx]
-            else:
-                # if targetSetOrder is empty, [0, 1, 2, 3, ...]
-                targetPositionNow = self.targetSetTotal[self.targetIdxNow]
-
-            distance = math.sqrt((agentPositionNow[0]-targetPositionNow[0])**2 + (agentPositionNow[1]-targetPositionNow[1])**2)
-        else:
-            # initialize the distance as a large number at the beginning
-            distance = 1E9
-
-        # states transitions
-        if self.StateNow.stateName == "Unassigned":
-            if self.targetIdxNow < self.numTargetTotal - 1:
-                self.targetIdxNow += 1
+        if self.StateNow.stateName == "Completed":
+            self.targetPosition = copy.deepcopy(targetPosition)
+            stateName = "Unassigned"
+            targetFinishFlag = False
+        elif self.StateNow.stateName == "Unassigned":
+            # if there exists a new target, assign it
+            if targetPosition:
+                self.targetPosition = copy.deepcopy(targetPosition)
                 stateName = "Assigned"
+            # if not, and if not all targets are visited, "Unassigned"
+            elif not targetAllFinishFlag:
+                self.targetPosition = list()
+                stateName = "Unassigned"
+            # if no new target for this agent, and all targets are visited, "Homing"
             else:
                 stateName = "Homing"
-        elif self.StateNow.stateName == "End":
-            # if State == End, keep it
-            stateName = self.StateNow.stateName
+            targetFinishFlag = False
         elif self.StateNow.stateName == "Assigned":
-            if distance > self.distanceThreshold:
-                stateName = self.StateNow.stateName
-                # don't change the assigned target index
-            else:
-                stateName = "Completed"
-        elif self.StateNow.stateName == "Completed":
-            # if completed, delete this target from to-do list
-            if self.targetSetToDo:
-                if targetSetOrder:
-                    # if targetSetOrder is not empty, deleted the completed task by order
-                    targetIdx = self.targetSetOrder[self.targetIdxNow]
-                    del self.targetSetToDo[targetIdx]
+            self.targetPosition = copy.deepcopy(targetPosition)
+            targetFinishFlag = False
+            if self.targetPosition:
+                # compute the distance between the current agent position and current target position
+                distance = math.sqrt(pow(agentPositionNow[0]-self.targetPosition[0], 2) + pow(agentPositionNow[1]-self.targetPosition[1], 2))
+                # no finish current target, don't change it
+                if distance > self.distanceThreshold:
+                    stateName = self.StateNow.stateName
                 else:
-                    # if targetSetOrder is empty, deleted the completed task by default order
-                    del self.targetSetToDo[0]
-            # if completed and the to-do list is empty, do nothing
-            stateName = "Unassigned"
+                    stateName = "Completed"
+                    targetFinishFlag = True
+            else:
+                stateName = "Unassigned"
         elif self.StateNow.stateName == "Homing":
-            # if the arrives at home, change to "End"
-            # otherwise, keep it "Homing"
-            distance = math.sqrt((agentPositionNow[0]-homePosition[0])**2 + (agentPositionNow[1]-homePosition[1])**2)
+            # compute the distance between the current agent position and its home position
+            distance = math.sqrt(pow(agentPositionNow[0]-self.homePosition[0], 2) + pow(agentPositionNow[1]-self.homePosition[1], 2))
             if distance > self.distanceThreshold:
                 stateName = self.StateNow.stateName
             else:
                 stateName = "End"
+            targetFinishFlag = True
+        elif self.StateNow.stateName == "End":
+            # if State == End, keep it
+            stateName = self.StateNow.stateName
         else:
             Exception("AgentFSM only supports 5 states: Unassigned, Assigned, Completed, Homing, End!")
 
         # update the state
         self.StateNow = self.StatesPool[stateName]
-
-        if self.StateNow.stateName == "Homing":
-            targetSetToDoOutput = [homePosition]
-        else:
-            targetSetToDoOutput = copy.deepcopy(self.targetSetToDo)
-
-        return stateName, targetSetToDoOutput
+        return stateName, targetFinishFlag

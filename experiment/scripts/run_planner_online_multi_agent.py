@@ -10,5 +10,5 @@ if __name__ == "__main__":
     MyPlannerMocap = PlannerMocapMultiAgent()
 
     # run the planner online
-    asyncio.run(MyPlannerMocap.run_planner())
-    asyncio.ensure_future(MyPlannerMocap.run_planner())
+    asyncio.run(MyPlannerMocap.runPlanner())
+    asyncio.ensure_future(MyPlannerMocap.runPlanner())

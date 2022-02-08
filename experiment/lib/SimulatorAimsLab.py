@@ -264,8 +264,7 @@ class SimulatorAimsLab(Simulator):
         legend = plt.legend(handles, labels, bbox_to_anchor=(1, 1), loc="upper left", framealpha=1)
         return ax
 
-    def update_realtime_plot(self, position_traj_list: list, agents_position: list, targets_position: list,
-                             task_allocation_result_many_agents: list, ax):
+    def update_realtime_plot(self, position_traj_list: list, agents_position: list, targets_position: list, ax):
         """
         Override method update_realtime_plot() of parent Object Simulator().
         Update realtime plotting once in an existing figure in metric.
@@ -294,8 +293,7 @@ class SimulatorAimsLab(Simulator):
         # if np.array(position_traj_list).size:
         if position_traj_list:
             # plot paths
-            self.plot_path_multi_agent_figure(position_traj_list, agents_position, targets_position,
-                                              task_allocation_result_many_agents, ax)
+            self.plot_path_multi_agent_figure(position_traj_list, ax)
         # plot legends
         handles, labels = self.figure_settings(ax, cluster_legend_flag=False, path_legend_flag=True)
         legend = plt.legend(handles, labels, bbox_to_anchor=(1, 1), loc="upper left", framealpha=1)
@@ -337,8 +335,7 @@ class SimulatorAimsLab(Simulator):
             ax.text(targets_position[idx_target][1]+text_offset, targets_position[idx_target][0]+text_offset,
                     "T"+str(idx_target), fontweight="bold", color="red")
 
-    def plot_path_multi_agent_figure(self, position_traj_list: list, agents_position: list,
-                                     targets_position: list, task_allocation_result_many_agents: list, ax):
+    def plot_path_multi_agent_figure(self, position_traj_list: list, ax):
         """
         Override method plot_path_multi_agent_figure() of parent Object Simulator().
         Plot path for multiple agents in an existing figure in metric.

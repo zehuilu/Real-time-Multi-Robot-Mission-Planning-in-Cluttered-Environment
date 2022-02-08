@@ -51,7 +51,6 @@ class AgentFSM:
     StatesPool: dict  # a dictionary for all included State objects
     targetPosition: list  # a 1d list for current target position, [px, py]
 
-
     def __init__(self, agentIdx=0, distanceThreshold=1.414):
         """
         Initialize a Agent Finite State Machine object.

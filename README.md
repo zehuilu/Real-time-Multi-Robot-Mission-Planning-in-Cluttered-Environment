@@ -1,5 +1,5 @@
 # DrMaMP-Distributed-Real-time-Multi-agent-Mission-Planning-Algorithm
-This is DrMaMP: Distributed Real-time Multi-agent Mission Planning Algorithm in Complex Environment.
+This is DrMaMP: Distributed Real-time Multi-agent Mission Planning Algorithm in Cluttered Environment.
 
 
 This repo has been tested with:
@@ -19,13 +19,13 @@ Dependencies
 
 * [OR-Tools](https://developers.google.com/optimization)
 
-For comparisons ONLY:
+For comparisons **ONLY**:
 * [CBBA-Python](https://github.com/zehuilu/CBBA-Python.git)
   - Python >= 3.7
   - [numpy](https://numpy.org/)
   - [matplotlib](https://matplotlib.org/)
 
-For C++ K-means clustering algorithm comparisons ONLY (you don't need the following packages if not running `test/k_means_comparison.py`):
+For C++ K-means clustering algorithm comparisons **ONLY** (you don't need the following packages if not running `test/k_means_comparison.py`):
   - [scikit-learn](https://scikit-learn.org/stable/)
 
 Build
@@ -47,7 +47,7 @@ $ pip3 install numpy matplotlib scipy
 $ git clone https://github.com/zehuilu/DrMaMP-Distributed-Real-time-Multi-agent-Mission-Planning-Algorithm.git
 $ cd <MAIN_DIRECTORY>
 $ git submodule update --init --recursive
-$ cd <MAIN_DIRECTORY>/externals/Lazy-Theta-with-optimization-any-angle-pathfinding
+$ cd externals/Lazy-Theta-with-optimization-any-angle-pathfinding
 $ mkdir build
 $ cd build
 $ cmake ..

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import asyncio
 import time
-import copy
+import math
+from random import randint, uniform
 from itertools import chain
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +16,8 @@ with pathmagic.context():
 
 # when distance between A and B < this number, we say A and B have same position
 DISTANCE_THRESHOLD = 1.414
+# True if some obstacles will walk randomly
+OBS_RANDOM_WALK_FLAG = True
 
 
 class MissionPlannerMultiAgent:
@@ -40,6 +43,7 @@ class MissionPlannerMultiAgent:
                 planning_frequency, and positions for agents and targets
         """
         self.planning_frequency = input_dict["planning_frequency"]
+        self.num_obs = input_dict["num_obs"]
 
         if "num_cluster" in input_dict and "number_of_iterations" in input_dict:
             # number of clusters for task decomposition
@@ -77,12 +81,9 @@ class MissionPlannerMultiAgent:
             # initialize the FSM with the first target
             self.list_AgentFSM[idx_agent].initFSM(targetPosition=targets_position_2d[idx_agent][0:2])
 
+        idx_iter = 0
         while(time_used < time_escape):
             t_start = time.time()
-
-            # update the map by MySimulator.map_array
-            # convert 2D numpy array to 1D list
-            # world_map = self.MySimulator.map_array.flatten().tolist()
 
             # do the planning
             path_all_agents, targets_position_2d, cluster_centers, time_algorithm_ms = \
@@ -107,7 +108,15 @@ class MissionPlannerMultiAgent:
             plt.pause(1E-6)
             time_sleep = max(0, 1/self.planning_frequency - time.time() + t_start)
             time_used = time.time() - time_begin
-            # print("Current Time [sec]: " + str(time_used))
+            print("Current Time [sec]: " + str(time_used))
+            idx_iter += 1
+
+            # if True, regenerate random obstacles and update map array
+            if OBS_RANDOM_WALK_FLAG:
+                if (idx_iter < 20) and (abs(idx_iter % 6) <= 0.5):
+                    # update map
+                    self.update_obs(num_obs_update=int(0.2*self.num_obs))
+
             await asyncio.sleep(time_sleep)
 
         # update the figure one more time
@@ -139,8 +148,6 @@ class MissionPlannerMultiAgent:
                                               self.MySimulator.map_width, self.MySimulator.map_height)
         t1 = time.time()
         time_algorithm_ms = round((t1-t0)*1000, 2)  # milliseconds
-
-        print("task_order: ", task_order)
 
         # rearrange the targets
         targets_position_2d = self.rearrange_targets(targets_position_1d, task_order)
@@ -254,3 +261,33 @@ class MissionPlannerMultiAgent:
                     del targets_position_2d[idx_agent][0:2]
 
         return agents_position_now, targets_position_2d
+
+    def update_obs(self, num_obs_update: int):
+        """
+        Update obstacles positions
+        """
+        self.MySimulator.map_array = np.array([self.MySimulator.value_non_obs] * 
+                                              (self.MySimulator.map_width * self.MySimulator.map_height)).\
+                                     reshape(-1, self.MySimulator.map_width)
+
+        for idx_obs in range(self.num_obs):
+            if idx_obs < num_obs_update:
+                move_angle = uniform(0.0, 360.0)
+
+                mangitude = 2.0
+
+                px = int(round(self.MySimulator.obs_left_top_corner[idx_obs][0] + mangitude * math.cos(move_angle)))
+                py = int(round(self.MySimulator.obs_left_top_corner[idx_obs][1] + mangitude * math.sin(move_angle)))
+
+                px = max(1, px)
+                px = min(self.MySimulator.map_width-self.MySimulator.size_obs_width-1, px)
+                py = max(1, py)
+                py = min(randint(1, self.MySimulator.map_height-self.MySimulator.size_obs_height-1), py)
+            else:
+                px = self.MySimulator.obs_left_top_corner[idx_obs][0]
+                py = self.MySimulator.obs_left_top_corner[idx_obs][1]
+
+            obs_mat = self.MySimulator.map_array[py : py+self.MySimulator.size_obs_height][:, px : px+self.MySimulator.size_obs_width]
+
+            self.MySimulator.map_array[py : py+self.MySimulator.size_obs_height][:, px : px+self.MySimulator.size_obs_width] \
+                = self.MySimulator.value_obs * np.ones(obs_mat.shape)

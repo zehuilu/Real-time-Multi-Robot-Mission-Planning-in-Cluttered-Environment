@@ -34,7 +34,7 @@ if __name__ == "__main__":
     number_of_iterations = 300
 
     # average agent velocity in cells
-    agent_velocity_ave = [random.randint(4,8) for i in range(num_agents)]
+    agent_velocity_ave = [random.randint(4, 8) for i in range(num_agents)]
 
     # planning and visualization frequency in Hz
     planning_frequency = 5
@@ -48,4 +48,5 @@ if __name__ == "__main__":
                                        "num_cluster": num_cluster,
                                        "number_of_iterations": number_of_iterations,
                                        "agent_velocity_ave": agent_velocity_ave,
-                                       "planning_frequency": planning_frequency}))
+                                       "planning_frequency": planning_frequency,
+                                       "num_obs": num_obs}))

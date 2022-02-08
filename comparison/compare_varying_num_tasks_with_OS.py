@@ -8,6 +8,7 @@ with pathmagic.context():
     from Simulator import Simulator
     import DrMaMP
     import CBBA_Path_Finding
+    import OptimalSearch
     from compute_path_distance import compute_path_distance_many_agents
 
 
@@ -32,29 +33,33 @@ if __name__ == "__main__":
     # convert 2D numpy array to 1D list
     world_map = MySimulator.map_array.flatten().tolist()
 
-    # fix the number of agents
-    num_agents = 3
-    max_num_tasks_per_agent = 21
-    num_run = 50
+    # fix the average number of tasks per agent
+    num_tasks_per_agent = 2
+    max_num_agents = 3
+    num_run = 10
     run_cbba_flag = True
 
     time_used_list_all_cases_my = []
     time_used_list_all_cases_cbba = []
+    time_used_list_all_cases_os = []
     distance_list_all_cases_my = []
     distance_list_all_cases_cbba = []
+    distance_list_all_cases_os = []
     xticks_str_list = []
-    for num_tasks_per_agent in range (2, max_num_tasks_per_agent+1, 3):
+    for num_agents in range (2, max_num_agents+1, 1):
         time_used_list_single_case_my = []
         time_used_list_single_case_cbba = []
+        time_used_list_single_case_os = []
         distance_list_single_case_my = []
         distance_list_single_case_cbba = []
+        distance_list_single_case_os = []
 
         # parameters for my algorithm
         num_cluster = num_agents
         number_of_iterations = 300
 
         for idx_run in range(num_run):
-            # generate agents and targets randomly
+            # generate agents and tasks randomly
             agent_position, targets_position = MySimulator.generate_agents_and_targets(
                 num_agents, num_agents * num_tasks_per_agent)
 
@@ -67,7 +72,8 @@ if __name__ == "__main__":
             t1 = time.time()
             time_used_my = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_my.append(time_used_my)
-            this_distance_my, _ = compute_path_distance_many_agents(path_all_agents_my)
+            this_distance_my, distance_list_my = compute_path_distance_many_agents(path_all_agents_my)
+
             distance_list_single_case_my.append(this_distance_my)
 
             # CBBA
@@ -79,15 +85,25 @@ if __name__ == "__main__":
                 t1 = time.time()
                 time_used_cbba = (t1 - t0) * 1000.0  # in millisecond
                 time_used_list_single_case_cbba.append(time_used_cbba)
-                this_distance_cbba, _ = compute_path_distance_many_agents(path_all_agents_cbba)
+                this_distance_cbba, distance_list_cbba = compute_path_distance_many_agents(path_all_agents_cbba)
                 distance_list_single_case_cbba.append(this_distance_cbba)
+
+            # optimal search
+            t0 = time.time()
+            _, optimal_cost = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
+            t1 = time.time()
+            time_used_os = (t1 - t0) * 1000.0  # in millisecond
+            time_used_list_single_case_os.append(time_used_os)
+            distance_list_single_case_os.append(optimal_cost)
 
         time_used_list_all_cases_my.append(time_used_list_single_case_my)
         time_used_list_all_cases_cbba.append(time_used_list_single_case_cbba)
+        time_used_list_all_cases_os.append(time_used_list_single_case_os)
         distance_list_all_cases_my.append(distance_list_single_case_my)
         distance_list_all_cases_cbba.append(distance_list_single_case_cbba)
-        xticks_str_list.append(str(num_agents * num_tasks_per_agent))
-        print(num_tasks_per_agent)
+        distance_list_all_cases_os.append(distance_list_single_case_os)
+        xticks_str_list.append(str(num_agents))
+        print(num_agents)
 
     xticks_list = range(1, len(time_used_list_all_cases_my)+1)
 
@@ -95,11 +111,20 @@ if __name__ == "__main__":
     std_time_my = list()
     mean_distance_my = list()
     std_distance_my = list()
+    mean_time_os = list()
+    std_time_os = list()
+    mean_distance_os = list()
+    std_distance_os = list()
     for idx in range(len(time_used_list_all_cases_my)):
         mean_time_my.append(np.mean(time_used_list_all_cases_my[idx]))
         std_time_my.append(np.std(time_used_list_all_cases_my[idx]))
         mean_distance_my.append(np.mean(distance_list_all_cases_my[idx]))
         std_distance_my.append(np.std(distance_list_all_cases_my[idx]))
+    for idx in range(len(time_used_list_all_cases_os)):
+        mean_time_os.append(np.mean(time_used_list_all_cases_os[idx]))
+        std_time_os.append(np.std(time_used_list_all_cases_os[idx]))
+        mean_distance_os.append(np.mean(distance_list_all_cases_os[idx]))
+        std_distance_os.append(np.std(distance_list_all_cases_os[idx]))
     if run_cbba_flag:
         mean_time_cbba = list()
         std_time_cbba = list()
@@ -111,23 +136,32 @@ if __name__ == "__main__":
             mean_distance_cbba.append(np.mean(distance_list_all_cases_cbba[idx]))
             std_distance_cbba.append(np.std(distance_list_all_cases_cbba[idx]))
 
+    print("distance_list_all_cases_my")
+    print(distance_list_all_cases_my)
+    print("distance_list_all_cases_cbba")
+    print(distance_list_all_cases_cbba)
+    print("distance_list_all_cases_os")
+    print(distance_list_all_cases_os)
+
 
     if run_cbba_flag:
         # create box plot for both algorithm
         fig1, ax1 = plt.subplots()
-        ax1.set_title('Computing time, num_agents = ' + str(num_agents))
+        ax1.set_title('Computing time, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # create plot
-        x_pos = np.array(range(len(time_used_list_all_cases_my)))*2.0-0.2
+        x_pos = np.array(range(len(time_used_list_all_cases_my)))*2.0-0.5
         ax1.bar(x_pos, mean_time_my, yerr=std_time_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-        x_pos = np.array(range(len(time_used_list_all_cases_cbba)))*2.0+0.2
+        x_pos = np.array(range(len(time_used_list_all_cases_os)))*2.0+0.0
+        ax1.bar(x_pos, mean_time_os, yerr=std_time_os, color='green', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
+        x_pos = np.array(range(len(time_used_list_all_cases_cbba)))*2.0+0.5
         ax1.bar(x_pos, mean_time_cbba, yerr=std_time_cbba, color='red', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-        ax1.set_xlabel('Number of tasks')
+        ax1.set_xlabel('Number of agents')
         ax1.set_ylabel('Computing time [ms]')
         ax1.yaxis.grid(True)
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends
-        colors = ["blue", "red"]
-        labels = ["Proposed", "CBBA"]
+        colors = ["blue", "green", "red"]
+        labels = ["Proposed", "Optimal", "CBBA"]
         f = lambda c: plt.plot([],[], color=c)[0]
         handles = [f(colors[i]) for i in range(len(labels))]
         legend = plt.legend(handles, labels, loc='upper left', framealpha=1)
@@ -135,54 +169,23 @@ if __name__ == "__main__":
 
         # create box plot about total distance for both algorithm
         fig2, ax2 = plt.subplots()
-        ax2.set_title('Total distance, num_agents = ' + str(num_agents))
+        ax2.set_title('Total distance, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # create plot
-        x_pos = np.array(range(len(distance_list_all_cases_my)))*2.0-0.2
+        x_pos = np.array(range(len(distance_list_all_cases_my)))*2.0-0.5
         ax2.bar(x_pos, mean_distance_my, yerr=std_distance_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-        x_pos = np.array(range(len(distance_list_all_cases_cbba)))*2.0+0.2
+        x_pos = np.array(range(len(distance_list_all_cases_os)))*2.0+0.0
+        ax2.bar(x_pos, mean_distance_os, yerr=std_distance_os, color='green', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
+        x_pos = np.array(range(len(distance_list_all_cases_cbba)))*2.0+0.5
         ax2.bar(x_pos, mean_distance_cbba, yerr=std_distance_cbba, color='red', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-        ax2.set_xlabel('Number of tasks')
+        ax2.set_xlabel('Number of agents')
         ax2.set_ylabel('Total distance')
         ax2.yaxis.grid(True)
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends
-        colors = ["blue", "red"]
-        labels = ["Proposed", "CBBA"]
+        colors = ["blue", "green", "red"]
+        labels = ["Proposed", "Optimal", "CBBA"]
         f = lambda c: plt.plot([],[], color=c)[0]
         handles = [f(colors[i]) for i in range(len(labels))]
         legend = plt.legend(handles, labels, loc='upper left', framealpha=1)
-
-
-    # create box plot for my algorithm
-    fig3, ax3 = plt.subplots()
-    ax3.set_title('Computing time for proposed, num_agents = ' + str(num_agents))
-    # create plot
-    ax3.bar(xticks_list, mean_time_my, yerr=std_time_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-    ax3.set_xlabel('Number of tasks')
-    ax3.set_ylabel('Computing time [ms]')
-    ax3.yaxis.grid(True)
-    plt.xticks(xticks_list, xticks_str_list)
-    # set legends
-    colors = ["blue"]
-    labels = ["Proposed"]
-    f = lambda c: plt.plot([],[], color=c)[0]
-    handles = [f(colors[i]) for i in range(len(labels))]
-    legend = plt.legend(handles, labels, loc='upper left', framealpha=1)
-
-
-    fig4, ax4 = plt.subplots()
-    ax4.set_title('Total distance for proposed, num_agents = ' + str(num_agents))
-    # create plot
-    ax4.bar(xticks_list, mean_distance_my, yerr=std_distance_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
-    ax4.set_xlabel('Number of tasks')
-    ax4.set_ylabel('Total distance')
-    ax4.yaxis.grid(True)
-    plt.xticks(xticks_list, xticks_str_list)
-    # set legends
-    colors = ["blue"]
-    labels = ["Proposed"]
-    f = lambda c: plt.plot([],[], color=c)[0]
-    handles = [f(colors[i]) for i in range(len(labels))]
-    legend = plt.legend(handles, labels, loc='upper left', framealpha=1)
 
     plt.show()

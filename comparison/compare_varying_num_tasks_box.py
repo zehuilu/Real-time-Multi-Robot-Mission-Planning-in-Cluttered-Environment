@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     # fix the number of agents
     num_agents = 3
-    max_num_targets_per_agent = 12
+    max_num_tasks_per_agent = 12
     num_run = 10
     run_cbba_flag = True
     run_ga_flag = True
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     distance_list_all_cases_cbba = []
     distance_list_all_cases_ga = []
     xticks_str_list = []
-    for num_targets_per_agent in range (2, max_num_targets_per_agent+1, 3):
+    for num_tasks_per_agent in range (2, max_num_tasks_per_agent+1, 3):
         time_used_list_single_case_my = []
         time_used_list_single_case_cbba = []
         time_used_list_single_case_ga = []
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         for idx_run in range(num_run):
             # generate agents and targets randomly
             agent_position, targets_position = MySimulator.generate_agents_and_targets(
-                num_agents, num_agents * num_targets_per_agent)
+                num_agents, num_agents * num_tasks_per_agent)
 
             # my algorithm
             t0 = time.time()
@@ -110,8 +110,8 @@ if __name__ == "__main__":
         distance_list_all_cases_my.append(distance_list_single_case_my)
         distance_list_all_cases_cbba.append(distance_list_single_case_cbba)
         distance_list_all_cases_ga.append(distance_list_single_case_ga)
-        xticks_str_list.append(str(num_agents * num_targets_per_agent))
-        print(num_targets_per_agent)
+        xticks_str_list.append(str(num_agents * num_tasks_per_agent))
+        print(num_tasks_per_agent)
 
     xticks_list = range(1, len(time_used_list_all_cases_my)+1)
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         plt.setp(bp3['whiskers'], color='green')
         plt.setp(bp3['caps'], color='green')
         plt.setp(bp3['medians'], color='green')
-        plt.xlabel('Number of targets')
+        plt.xlabel('Number of tasks')
         plt.ylabel('Computing time [ms]')
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends
@@ -166,7 +166,7 @@ if __name__ == "__main__":
         plt.setp(bp6['whiskers'], color='green')
         plt.setp(bp6['caps'], color='green')
         plt.setp(bp6['medians'], color='green')
-        plt.xlabel('Number of targets')
+        plt.xlabel('Number of tasks')
         plt.ylabel('Task completion time')
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     # plt.setp(bp7['whiskers'], color='blue')
     # plt.setp(bp7['caps'], color='blue')
     # plt.setp(bp7['medians'], color='blue')
-    # plt.xlabel('Number of targets')
+    # plt.xlabel('Number of tasks')
     # plt.ylabel('Computing time [ms]')
     # plt.xticks(xticks_list, xticks_str_list)
 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     # plt.setp(bp8['whiskers'], color='blue')
     # plt.setp(bp8['caps'], color='blue')
     # plt.setp(bp8['medians'], color='blue')
-    # plt.xlabel('Number of targets')
+    # plt.xlabel('Number of tasks')
     # plt.ylabel('Total distance')
     # plt.xticks(xticks_list, xticks_str_list)
 
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     #     plt.setp(bp9['whiskers'], color='red')
     #     plt.setp(bp9['caps'], color='red')
     #     plt.setp(bp9['medians'], color='red')
-    #     plt.xlabel('Number of targets')
+    #     plt.xlabel('Number of tasks')
     #     plt.ylabel('Computing time [ms]')
     #     plt.xticks(xticks_list, xticks_str_list)
 
@@ -227,7 +227,7 @@ if __name__ == "__main__":
         # plt.setp(bp10['whiskers'], color='green')
         # plt.setp(bp10['caps'], color='green')
         # plt.setp(bp10['medians'], color='green')
-        # plt.xlabel('Number of targets')
+        # plt.xlabel('Number of tasks')
         # plt.ylabel('Computing time [ms]')
         # plt.xticks(xticks_list, xticks_str_list)
 
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         plt.setp(bp12['whiskers'], color='green')
         plt.setp(bp12['caps'], color='green')
         plt.setp(bp12['medians'], color='green')
-        plt.xlabel('Number of targets')
+        plt.xlabel('Number of tasks')
         plt.ylabel('Computing time [ms]')
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends
@@ -270,7 +270,7 @@ if __name__ == "__main__":
         plt.setp(bp14['whiskers'], color='green')
         plt.setp(bp14['caps'], color='green')
         plt.setp(bp14['medians'], color='green')
-        plt.xlabel('Number of targets')
+        plt.xlabel('Number of tasks')
         plt.ylabel('Total distance')
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends

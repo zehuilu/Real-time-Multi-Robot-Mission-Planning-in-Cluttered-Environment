@@ -34,7 +34,7 @@ if __name__ == "__main__":
     world_map = MySimulator.map_array.flatten().tolist()
 
     # fix the average number of targets per agent
-    num_targets_per_agent = 2
+    num_tasks_per_agent = 2
     max_num_agents = 3
     num_run = 10
     run_cbba_flag = True
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         for idx_run in range(num_run):
             # generate agents and targets randomly
             agent_position, targets_position = MySimulator.generate_agents_and_targets(
-                num_agents, num_agents * num_targets_per_agent)
+                num_agents, num_agents * num_tasks_per_agent)
 
             # my algorithm
             t0 = time.time()
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     if run_cbba_flag:
         # create box plot for both algorithm
         fig1, ax1 = plt.subplots()
-        ax1.set_title('Computing time, num_targets_per_agent = ' + str(num_targets_per_agent))
+        ax1.set_title('Computing time, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # create plot
         x_pos = np.array(range(len(time_used_list_all_cases_my)))*2.0-0.5
         ax1.bar(x_pos, mean_time_my, yerr=std_time_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
         # create box plot about total distance for both algorithm
         fig2, ax2 = plt.subplots()
-        ax2.set_title('Total distance, num_targets_per_agent = ' + str(num_targets_per_agent))
+        ax2.set_title('Total distance, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # create plot
         x_pos = np.array(range(len(distance_list_all_cases_my)))*2.0-0.5
         ax2.bar(x_pos, mean_distance_my, yerr=std_distance_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)

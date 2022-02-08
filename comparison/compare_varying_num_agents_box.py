@@ -34,7 +34,7 @@ if __name__ == "__main__":
     world_map = MySimulator.map_array.flatten().tolist()
 
     # fix the average number of targets per agent
-    num_targets_per_agent = 6
+    num_tasks_per_agent = 6
     max_num_agents = 17
     num_run = 50
     run_cbba_flag = False
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         for idx_run in range(num_run):
             # generate agents and targets randomly
             agent_position, targets_position = MySimulator.generate_agents_and_targets(
-                num_agents, num_agents * num_targets_per_agent)
+                num_agents, num_agents * num_tasks_per_agent)
 
             # my algorithm
             t0 = time.time()
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     if run_cbba_flag:
         # create box plot for both algorithm
         fig1, ax1 = plt.subplots()
-        ax1.set_title('Computing time, num_targets_per_agent = ' + str(num_targets_per_agent))
+        ax1.set_title('Computing time, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # create plot
         bp1 = ax1.boxplot(time_used_list_all_cases_my, positions=np.array(range(len(time_used_list_all_cases_my)))*2.0-0.5, widths=0.4, showfliers=False)
         bp2 = ax1.boxplot(time_used_list_all_cases_cbba, positions=np.array(range(len(time_used_list_all_cases_cbba)))*2.0+0.5, widths=0.4, showfliers=False)
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
         # create box plot about total distance for both algorithm
         fig2, ax2 = plt.subplots()
-        ax2.set_title('Total distance, num_targets_per_agent = ' + str(num_targets_per_agent))
+        ax2.set_title('Total distance, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # create plot
         bp4 = ax2.boxplot(distance_list_all_cases_my, positions=np.array(range(len(distance_list_all_cases_my)))*2.0-0.5, widths=0.4, showfliers=False)
         bp5 = ax2.boxplot(distance_list_all_cases_cbba, positions=np.array(range(len(distance_list_all_cases_cbba)))*2.0+0.5, widths=0.4, showfliers=False)
@@ -180,7 +180,7 @@ if __name__ == "__main__":
 
     # # create box plot for my algorithm
     # fig3, ax3 = plt.subplots()
-    # ax3.set_title('Computing time for proposed, num_targets_per_agent = ' + str(num_targets_per_agent))
+    # ax3.set_title('Computing time for proposed, num_tasks_per_agent = ' + str(num_tasks_per_agent))
     # # create plot
     # bp7 = ax3.boxplot(time_used_list_all_cases_my, showfliers=False)
     # plt.setp(bp7['boxes'], color='blue')
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     # plt.xticks(xticks_list, xticks_str_list)
 
     # fig4, ax4 = plt.subplots()
-    # ax4.set_title('Total distance for proposed, num_targets_per_agent = ' + str(num_targets_per_agent))
+    # ax4.set_title('Total distance for proposed, num_tasks_per_agent = ' + str(num_tasks_per_agent))
     # # create plot
     # bp8 = ax4.boxplot(distance_list_all_cases_my, showfliers=False)
     # plt.setp(bp8['boxes'], color='blue')
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     # if run_cbba_flag:
     #     # create box plot for CBBA + path finding
     #     fig5, ax5 = plt.subplots()
-    #     ax5.set_title('Computing time for CBBA, num_targets_per_agent = ' + str(num_targets_per_agent))
+    #     ax5.set_title('Computing time for CBBA, num_tasks_per_agent = ' + str(num_tasks_per_agent))
     #     # create plot
     #     bp9 = ax5.boxplot(time_used_list_all_cases_cbba, showfliers=False)
     #     plt.setp(bp9['boxes'], color='red')
@@ -220,7 +220,7 @@ if __name__ == "__main__":
     if run_ga_flag:
         # # create box plot for GA
         # fig6, ax6 = plt.subplots()
-        # ax6.set_title('Computing time for GA, num_targets_per_agent = ' + str(num_targets_per_agent))
+        # ax6.set_title('Computing time for GA, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # # create plot
         # bp10 = ax6.boxplot(time_used_list_all_cases_ga, showfliers=False)
         # plt.setp(bp10['boxes'], color='green')
@@ -234,7 +234,7 @@ if __name__ == "__main__":
 
         # create box plot for both algorithm
         fig7, ax7 = plt.subplots()
-        ax7.set_title('Computing time, num_targets_per_agent = ' + str(num_targets_per_agent))
+        ax7.set_title('Computing time, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # create plot
         bp11 = ax7.boxplot(time_used_list_all_cases_my, positions=np.array(range(len(time_used_list_all_cases_my)))*2.0-0.25, widths=0.4, showfliers=False)
         bp12 = ax7.boxplot(time_used_list_all_cases_ga, positions=np.array(range(len(time_used_list_all_cases_ga)))*2.0+0.25, widths=0.4, showfliers=False)
@@ -258,7 +258,7 @@ if __name__ == "__main__":
 
         # create box plot for both algorithm
         fig8, ax8 = plt.subplots()
-        ax8.set_title('Total distance, num_targets_per_agent = ' + str(num_targets_per_agent))
+        ax8.set_title('Total distance, num_tasks_per_agent = ' + str(num_tasks_per_agent))
         # create plot
         bp13 = ax8.boxplot(distance_list_all_cases_my, positions=np.array(range(len(distance_list_all_cases_my)))*2.0-0.25, widths=0.4, showfliers=False)
         bp14 = ax8.boxplot(distance_list_all_cases_ga, positions=np.array(range(len(distance_list_all_cases_ga)))*2.0+0.25, widths=0.4, showfliers=False)

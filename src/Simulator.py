@@ -72,22 +72,34 @@ class Simulator:
         """
         return [map_index[0]/self.resolution, map_index[1]/self.resolution]
 
-    def generate_random_obs(self, num_obs: int, size_obs_meter: list):
+    def generate_random_obs(self, num_obs: int, size_obs_meter: list, empty_map_flag=False):
         """
         Generate random obstacles. size_obs_meter = [obs_width_meter, obs_height_meter]
+
+            empty_map_flag: True to overwrite self.map_array as an empty array (meaning no obstacles).
         """
+        if empty_map_flag:
+            self.map_array = np.array([self.value_non_obs]*(self.map_width*self.map_height)).reshape(-1, self.map_width)
+
         self.size_obs_width = round(size_obs_meter[0] * self.resolution)
         self.size_obs_height = round(size_obs_meter[1] * self.resolution)
+
+        self.obs_left_top_corner = list()
+
         if num_obs > 0:
-            for _ in range(0, num_obs):
+            for idx in range(num_obs):
                 # [width, height]
-                obs_left_top_corner = [randint(1, self.map_width-self.size_obs_width-1),
-                                       randint(1, self.map_height-self.size_obs_height-1)]
+                self.obs_left_top_corner.append([randint(1, self.map_width-self.size_obs_width-1),
+                                                 randint(1, self.map_height-self.size_obs_height-1)])
 
-                obs_mat = self.map_array[obs_left_top_corner[1]:obs_left_top_corner[1]+self.size_obs_height][:, obs_left_top_corner[0]:obs_left_top_corner[0]+self.size_obs_width]
+                obs_mat = self.map_array[self.obs_left_top_corner[idx][1]:\
+                                         self.obs_left_top_corner[idx][1]+self.size_obs_height][\
+                                         :, self.obs_left_top_corner[idx][0]:self.obs_left_top_corner[idx][0]+self.size_obs_width]
 
-                self.map_array[obs_left_top_corner[1]:obs_left_top_corner[1]+self.size_obs_height][:, obs_left_top_corner[0]:obs_left_top_corner[0]+self.size_obs_width] \
-                    = self.value_obs * np.ones(obs_mat.shape)
+                self.map_array[self.obs_left_top_corner[idx][1]:\
+                               self.obs_left_top_corner[idx][1]+self.size_obs_height][\
+                               :, self.obs_left_top_corner[idx][0]:self.obs_left_top_corner[idx][0]+self.size_obs_width] \
+                               = self.value_obs * np.ones(obs_mat.shape)
 
     def generate_agents_and_targets(self, num_agents: int, num_targets: int):
         """

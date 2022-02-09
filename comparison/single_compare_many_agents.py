@@ -8,7 +8,6 @@ with pathmagic.context():
     import DrMaMP
     import CBBA_Path_Finding
     import OptimalSearch
-    import GA_Solver
     from compute_path_distance import compute_path_distance_many_agents
 
 
@@ -78,37 +77,13 @@ if __name__ == "__main__":
     MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
 
 
-    # Genetic Algorithm
-    # some hyper-parameters for Genetic Algorithm
-    population_size = 25
-    max_iter = 25
-    t0 = time.time()
-    path_all_agents, task_order_all, cost, cluster_centers, points_idx_for_clusters, cluster_assigned_idx\
-        = GA_Solver.MissionPlanning(
-            agent_position, targets_position, num_cluster, number_of_iterations,
-            population_size, max_iter,
-            world_map, MySimulator.map_width, MySimulator.map_height)
-    t1 = time.time()
-    print("K-GA time used [sec]:" + str(t1 - t0))
-    print("K-GA cost: ", cost)
-    my_distance, my_distance_list = compute_path_distance_many_agents(path_all_agents)
-    print("K-GA total distance: ", my_distance)
-    print("path_all_agents")
-    print(path_all_agents)
-
-    for idx in range(len(task_order_all)):
-        task_order_all[idx].insert(0, idx)
-    # plot
-    MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_order_all, cluster_centers, points_idx_for_clusters)
-
-
     # Optimal Search
     t0 = time.time()
     # solve it
     solution, optimal_cost = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
     t1 = time.time()
     print("Optimal Search time used [sec]:" + str(t1 - t0))
-    print("Optimal Search cost: ", cost)
+    print("Optimal Search cost: ", optimal_cost)
     print("Optimal solution")
     print(solution)
 

@@ -8,7 +8,6 @@ with pathmagic.context():
     import DrMaMP
     import CBBA_Path_Finding
     import OptimalSearch
-    import GA_Solver
     from compute_path_distance import compute_path_distance_one_agent
 
 
@@ -65,31 +64,13 @@ if __name__ == "__main__":
     print(task_allocation_list[0])
 
 
-    # Genetic Algorithm
-    # some hyper-parameters for Genetic Algorithm
-    population_size = 25
-    max_iter = 25
-    t0 = time.time()
-    path, task_order, cost = GA_Solver.SolveSingleAgent(agent_position, targets_position,
-                                                        population_size, max_iter,
-                                                        world_map, MySimulator.map_width, MySimulator.map_height)
-    t1 = time.time()
-    print("K-GA time used [sec]:" + str(t1 - t0))
-    print("K-GA cost: ", cost)
-    my_distance = compute_path_distance_one_agent(path)
-    print("K-GA total distance: ", my_distance)
-    task_order.insert(0, 0)
-    # plot
-    MySimulator.plot_paths([path], agent_position, targets_position, [task_order], [], [])
-
-
     # Optimal Search
     t0 = time.time()
     # solve it
     solution, optimal_cost = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
     t1 = time.time()
     print("Optimal Search time used [sec]:" + str(t1 - t0))
-    print("Optimal Search cost: ", cost)
+    print("Optimal Search cost: ", optimal_cost)
     print("Optimal solution")
     print(solution)
 

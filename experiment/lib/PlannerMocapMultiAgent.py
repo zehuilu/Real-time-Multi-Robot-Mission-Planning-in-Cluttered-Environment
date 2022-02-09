@@ -129,9 +129,6 @@ class PlannerMocapMultiAgent:
             self.listAgentFSMExp[idxAgent].initFSM(targetPosition=targetPosition,
                                                    homePosition=self.agentHomeList[idxAgent])
 
-        # True if there is no target unfinished
-        targetAllFinishFlag = False
-
         self.ax = self.MySimulator.create_realtime_plot()  # create a realtime plotting figure
         timeBegin = time.time()
         timeUsed = 0  # initialize the global time as 0
@@ -142,26 +139,14 @@ class PlannerMocapMultiAgent:
             agentPositionList = await self.updateStateMocap()
 
             # update targets by Finite State Machine
-            targetPosiQualisys3d, targetAllFinishFlag, endFlag = self.updateTargetSet(
-                agentPositionList, targetPosiQualisys3d, targetAllFinishFlag)
-
-
-
-
-
-            print("Agent 1 target position: ", self.listAgentFSMExp[1].targetPosition)
-            print("Agent 1 state: ", self.listAgentFSMExp[1].StateNow.stateName)
-
-
-
-
+            targetPosiQualisys3d, missionFinishFlagList, endFlagList = self.updateTargetSet(agentPositionList, targetPosiQualisys3d)
 
             # do the planning
             pathAllIndex, targetPosiQualisys3d, clusterCenter, timeAlgo_ms = self.runSolverOnce(
-                agentPositionList, targetPosiQualisys3d, clusterCenter, targetAllFinishFlag)
+                agentPositionList, targetPosiQualisys3d, clusterCenter, missionFinishFlagList)
 
             # save trajectories as csv files
-            positionTrajList = self.saveTraj(pathAllIndex, velocityAveList, timeBegin)
+            positionTrajList = self.saveTraj(pathAllIndex, velocityAveList, timeBegin, endFlagList)
 
             # for visualization only
             targetPlotList = self.targetQualisys3dTo2d(targetPosiQualisys3d)
@@ -177,10 +162,10 @@ class PlannerMocapMultiAgent:
             plt.pause(1E-9)
             timeSleep = max(0, 1/self.planningFrequency - time.time() + tStart)
             timeUsed = time.time() - timeBegin
-            # print("Current Time [sec]: " + str(timeUsed))
+            print("Current Time [sec]: " + str(timeUsed))
             await asyncio.sleep(timeSleep)
 
-    def runSolverOnce(self, agentPosition2d, targetPosiQualisys3d, clusterCenter, targetAllFinishFlag):
+    def runSolverOnce(self, agentPosition2d, targetPosiQualisys3d, clusterCenter, missionFinishFlagList):
         """
         Run the planning solver once.
 
@@ -189,14 +174,14 @@ class PlannerMocapMultiAgent:
             targetPosiQualisys3d: 3D list, each sub-list is the targets positions (in Qualisys coordinates) in an execution
                 sequence for each agent, [  [[x0,y0,z0], [x1,y1,z1], ...] , [[x2,y2,z2], [x3,y3,z3], ...] , ... ]
             clusterCenter: 1D list, clusters centroids positions in map index, [x0,y0, x1,y1, x2,y2, ...]
-            targetAllFinishFlag: bool, True if there is no target unfinished
-
+            missionFinishFlagList: a 1D list of boolean,
+                missionFinishFlagList[0] = True means that the first agent is either "Homing" or "End".
         """
         # transform qualisys coordinates (meter) to map index
         agentPositionIndex = self.MySimulator.qualisys_to_map_index_all(agentPosition2d)
 
-        # if not every target is finished, do mission planning
-        if not targetAllFinishFlag:
+        # if none of agents is either "Homing" or "End", do mission planning
+        if not any(missionFinishFlagList):
             # 3D targets (in Qualisys) to 2D targets (in map index) with order inherited
             targetPosiIndex1d = self.targetQualisys3dTo1dIndex(targetPosiQualisys3d)
 
@@ -208,30 +193,60 @@ class PlannerMocapMultiAgent:
                 self.MySimulator.map_array.flatten().tolist(),
                 self.MySimulator.map_width, self.MySimulator.map_height)
             
-            # rearrange tasks here!!!!!!!!!!!!!!!!!!!
+            # rearrange tasks here, the beginning of next iteration needs the task set in ordered
             targetPosiQualisys3d = self.targetRearrange3d(targetPosiQualisys3d, taskOrder)
-        # if every target is finished, do path planning to back home positions
         else:
+            # initialize the path for all agents (eventually it's a 3D list)
+            pathAllIndex = list()
+            # initialize the task order for all agents (eventually it's a 2D list)
+            taskOrder = list()
+            # in this case, we don't need clusterCenter
+            clusterCenter = list()
+
             # convert home positions to 1d map index, [x0,y0, x1,y1, x2,y2, ...]
             homePosi1d = self.MySimulator.qualisys_to_map_index_all(self.agentHomeList)
-
-            # convert to 2d map index, [[x0,y0], [x1,y1], [x2,y2], ...]
-            homePosi2d = np.array(homePosi1d).reshape(-1, 2).tolist()
-
             t0 = time.time()
-            # go back home, do path planning
-            pathAllIndex = DrMaMP.PathPlanningMultiAgent(
-                agentPositionIndex, homePosi2d,
-                self.MySimulator.map_array.flatten().tolist(),
-                self.MySimulator.map_width, self.MySimulator.map_height)
+
+            for idxAgent in range(self.numAgent):
+                # if this agent is still executing tasks, do mission planning for this agent
+                # there is a chance that targetPosiQualisys3d[idxAgent] is [], but the state is not updated yet
+                # So do mission planning only when the target set is not empty and the state is not "Homing"
+                if (not missionFinishFlagList[idxAgent]) and (targetPosiQualisys3d[idxAgent]):
+                    # convert the targets of this agent into 1d map index positions
+                    targetPosiIndex2d = self.MySimulator.qualisys_to_map_index_all(targetPosiQualisys3d[idxAgent])
+                    # NOTE: taskOrderThis is the local index of its tasks
+                    # BUT this section of codes ASSUMES that there are only two agents
+                    # so the local index is the global index
+                    path2dThis, taskOrderThis = DrMaMP.SolveOneAgent(\
+                        agentPositionIndex[2*idxAgent:2*idxAgent+2],
+                        targetPosiIndex2d,
+                        self.MySimulator.map_array.flatten().tolist(),
+                        self.MySimulator.map_width, self.MySimulator.map_height)
+
+                    pathAllIndex.append(path2dThis)
+                    taskOrder.append(taskOrderThis)
+                # if this agent is "Homing" or the target set is empty, do find path
+                else:
+                    path1dThis, _ = DrMaMP.FindPath(
+                        agentPositionIndex[2*idxAgent:2*idxAgent+2],
+                        homePosi1d[2*idxAgent:2*idxAgent+2],
+                        self.MySimulator.map_array.flatten().tolist(),
+                        self.MySimulator.map_width, self.MySimulator.map_height)
+
+                    # pathThis is a 1D list of path nodes
+                    pathAllIndex.append([path1dThis])
+                    # Homing, no tasks
+                    taskOrder.append([])
+
+            # rearrange tasks here, the beginning of next iteration needs the task set in ordered
+            targetPosiQualisys3d = self.targetRearrange3d(targetPosiQualisys3d, taskOrder)
 
         t1 = time.time()
         timeAlgo_ms = round((t1-t0)*1000, 2)  # milliseconds
         # print("Solver time used [sec]:" + str(t1 - t0))
-
         return pathAllIndex, targetPosiQualisys3d, clusterCenter, timeAlgo_ms
 
-    def saveTraj(self, pathAllIndex, velocityAveList, timeBegin):
+    def saveTraj(self, pathAllIndex, velocityAveList, timeBegin, endFlagList):
         """
         Save the desired trajectory as csv files. These csv files are for quadrotor Mambo to track.
 
@@ -239,6 +254,7 @@ class PlannerMocapMultiAgent:
             pathAllIndex:
             velocityAveList: 1D list, each element is each agent's average velocity (m/s), [0.25, 0.3, ...]
             timeBegin: the time stamp where the whole planner begins
+            endFlagList: a 1D list of boolean, True if this agent is "End"
 
         """
         # transform map array (index) to qualisys coordinates (meter)
@@ -253,41 +269,54 @@ class PlannerMocapMultiAgent:
         timeNow = time.time()
 
         positionTrajList = list()
-        for idx in range(len(pathQualisysList)):
-            if pathQualisysList[idx]:
-                timeQueueVec, positionTraj, velocityTraj = discrete_path_to_time_traj(
-                    pathQualisysList[idx], dt, velocityAveList[idx], interp_kind='linear',
-                    velocity_flag=True, ini_velocity_zero_flag=False)
+        for idxAgent in range(len(pathQualisysList)):
+            # if this agent is "End", stop sending trajectories and it will land
+            if not endFlagList[idxAgent]:
+                if pathQualisysList[idxAgent]:
+                    try:
+                        # if the path has more than two nodes, do quadratic interpolation
+                        if len(pathQualisysList[idxAgent]) > 2:
+                            timeQueueVec, positionTraj, velocityTraj = discrete_path_to_time_traj(
+                                pathQualisysList[idxAgent], dt, velocityAveList[idxAgent],
+                                interp_kind='quadratic', velocity_flag=True, ini_velocity_zero_flag=False)
+                        # if the path has two nodes, do linear interpolation
+                        else:
+                            timeQueueVec, positionTraj, velocityTraj = discrete_path_to_time_traj(
+                                pathQualisysList[idxAgent], dt, velocityAveList[idxAgent],
+                                interp_kind='linear', velocity_flag=True, ini_velocity_zero_flag=False)
 
-                # Mambo Tracking Controller uses the accumulated time, need to change the time trajectory here too
-                timeQueueVec = timeQueueVec + max(timeNow-timeBegin-1.0, 0)
+                        # Mambo Tracking Controller uses the accumulated time, need to change the time trajectory here too
+                        timeQueueVec = timeQueueVec + max(timeNow-timeBegin-1.0, 0)
 
-                # output trajectories as a CSV file
-                array_csv = np.vstack((timeQueueVec, np.array(positionTraj).T, np.array(velocityTraj).T))
-                timeName = time.strftime("%Y%m%d%H%M%S")
-                filename_csv = os.path.expanduser("~") + "/Mambo-Tracking-Interface" + self.configDataList[idx]["DIRECTORY_TRAJ"] + timeName + ".csv"
-                np.savetxt(filename_csv, array_csv, delimiter=",")
-                positionTrajList.append(positionTraj)
-            else:
-                positionTrajList.append(list())
+                        # output trajectories as a CSV file
+                        array_csv = np.vstack((timeQueueVec, np.array(positionTraj).T, np.array(velocityTraj).T))
+                        timeName = time.strftime("%Y%m%d%H%M%S")
+                        filename_csv = os.path.expanduser("~") + "/Mambo-Tracking-Interface" + \
+                                    self.configDataList[idxAgent]["DIRECTORY_TRAJ"] + timeName + ".csv"
+                        np.savetxt(filename_csv, array_csv, delimiter=",")
+                        positionTrajList.append(positionTraj)
+                    except:
+                        positionTrajList.append(list())
+                else:
+                    positionTrajList.append(list())
 
-                # timeQueueVec, positionTraj, velocityTraj = discrete_path_to_time_traj(
-                #     agentPosition2d, dt, velocityAveList[idx], interp_kind='linear',
-                #     velocity_flag=True, ini_velocity_zero_flag=False)
+                    # timeQueueVec, positionTraj, velocityTraj = discrete_path_to_time_traj(
+                    #     agentPosition2d, dt, velocityAveList[idxAgent], interp_kind='linear',
+                    #     velocity_flag=True, ini_velocity_zero_flag=False)
 
-                # # Mambo Tracking Controller uses the accumulated time, need to change the time trajectory here too
-                # timeQueueVec = timeQueueVec + max(timeNow-timeBegin-1.0, 0)
+                    # # Mambo Tracking Controller uses the accumulated time, need to change the time trajectory here too
+                    # timeQueueVec = timeQueueVec + max(timeNow-timeBegin-1.0, 0)
 
-                # # output trajectories as a CSV file
-                # array_csv = np.vstack((timeQueueVec, positionTraj.T, velocityTraj.T))
-                # timeName = time.strftime("%Y%m%d%H%M%S")
-                # filename_csv = os.path.expanduser("~") + "/Mambo-Tracking-Interface" + self.configDataList[idx]["DIRECTORY_TRAJ"] + timeName + ".csv"
-                # np.savetxt(filename_csv, array_csv, delimiter=",")
-                # positionTrajList.append(positionTraj)
+                    # # output trajectories as a CSV file
+                    # array_csv = np.vstack((timeQueueVec, positionTraj.T, velocityTraj.T))
+                    # timeName = time.strftime("%Y%m%d%H%M%S")
+                    # filename_csv = os.path.expanduser("~") + "/Mambo-Tracking-Interface" + self.configDataList[idxAgent]["DIRECTORY_TRAJ"] + timeName + ".csv"
+                    # np.savetxt(filename_csv, array_csv, delimiter=",")
+                    # positionTrajList.append(positionTraj)
 
         return positionTrajList
 
-    def updateTargetSet(self, agentPosition: list, targetPosiQualisys3d: list, targetAllFinishFlag: bool):
+    def updateTargetSet(self, agentPosition: list, targetPosiQualisys3d: list):
         """
         Update the whole target set by updating Finite State Machine.
 
@@ -295,16 +324,17 @@ class PlannerMocapMultiAgent:
             agentPosition: a 2D list, each sub-list is each agent's positions (in Qualisys), [[x0,y0,z0], [x1,y1,z1], ...]
             targetPosiQualisys3d: a 3D list, each sub-list is a target set of an agent.
                 For example, targetPosiQualisys3d[1] = [[x0,y0,z0], [x1,y1,z1]] is for the second agent (Agent-1).
-            targetAllFinishFlag: bool, True if there is no target unfinished
 
         Outputs:
             targetPosiQualisys3d: a 3D list, as same as the input targetPosiQualisys3d
-            endFlag: boolean, True if all agents states are "End"
+            missionFinishFlagList: a 1D list of boolean,
+                missionFinishFlagList[0] = True means that the first agent is either "Homing" or "End".
+            endFlagList: a 1D list of boolean, True if this agent is "End"
         """
-        # initialize the output
+        # initialize a list for Homing flags of all agent
+        missionFinishFlagList = list()
+        # initialize endFlagList as empty
         endFlagList = list()
-        # initialize this flag
-        targetAllFinishFlag = False
 
         for idxAgent in range(self.numAgent):
             # if targetPosiQualisys3d[idxAgent] = [], targetPosiQualisys3d[idxAgent][0] won't work
@@ -313,38 +343,21 @@ class PlannerMocapMultiAgent:
             # transit states
             _, targetFinishFlagThis = self.listAgentFSMExp[idxAgent].transition(
                 agentPositionNow=agentPosition[idxAgent],
-                targetPosition=targetPosition,
-                targetAllFinishFlag=targetAllFinishFlag)
+                targetPosition=targetPosition)
 
             # update targets positions set
             if targetFinishFlagThis:
                 # if there are still targets, delete the first one; else, do nothing
-                if targetPosiQualisys3d[idxAgent][0]:
+                # if targetPosiQualisys3d[idxAgent] = [], targetPosiQualisys3d[idxAgent][0] won't work
+                if targetPosiQualisys3d[idxAgent][0:1]:
                     del targetPosiQualisys3d[idxAgent][0]
 
-            # if state is "End", this agent completed all assigned tasks
-            if self.listAgentFSMExp[idxAgent].StateNow.stateName == "End":
-                endFlagList.append(True)
-            else:
-                endFlagList.append(False)
+            missionFinishFlag = (self.listAgentFSMExp[idxAgent].StateNow.stateName == "Homing") or \
+                                (self.listAgentFSMExp[idxAgent].StateNow.stateName == "End")
+            missionFinishFlagList.append(missionFinishFlag)
 
-        # test if updated target set is empty [[], [], ...]
-        try:
-            testMat = np.array(targetPosiQualisys3d, dtype=object)
-            size = testMat.size
-            # if size is zero, means targetPosiQualisys3d is empty, [[], [], ...]
-            if size < 0.5:
-                targetAllFinishFlag = True
-        except:
-            pass
-
-        # True if all agents states are "End"
-        endFlag = all(endFlagList)
-        return targetPosiQualisys3d, targetAllFinishFlag, endFlag
-
-
-
-
+            endFlagList.append(self.listAgentFSMExp[idxAgent].StateNow.stateName == "End")
+        return targetPosiQualisys3d, missionFinishFlagList, endFlagList
 
     def targetRearrange3d(self, targetPosiQualisys3d: list, taskOrder: list):
         """
@@ -373,10 +386,6 @@ class PlannerMocapMultiAgent:
                 taskId = taskOrder[idxAgent][idxtask]
                 targetPosiQualisys3dNew[idxAgent].append(targetPosiQualisys2d[taskId])
         return targetPosiQualisys3dNew
-
-
-
-
 
     def target2dTo3dOrdered(self, targetPositionInput: list, taskOrder: list):
         """

@@ -52,7 +52,7 @@ class AgentFSMExp(AgentFSM.AgentFSM):
         self.targetPosition = copy.deepcopy(targetPosition)
         self.homePosition = copy.deepcopy(homePosition)
 
-    def transition(self, agentPositionNow: list, targetPosition: list, targetAllFinishFlag: bool):
+    def transition(self, agentPositionNow: list, targetPosition: list):
         """
         Make state transition based on the current agent position and target position.
         NOTE: this function ignores the distance in height (z-axis).
@@ -60,32 +60,28 @@ class AgentFSMExp(AgentFSM.AgentFSM):
         Input:
             agentPositionNow: 1D list, current agent position (in Qualisys coordinates), [x0,y0,z0]
             targetPosition: 1D list, current target position (in Qualisys coordinates), [px, py, z0]
-            targetAllFinishFlag: bool, True if all agents finish all the targets
 
         Output:
             stateName: str, the state name after the transition
             targetFinishFlag: True if self.targetPosition is finished
         """
+        targetFinishFlag = False
         if self.StateNow.stateName == "Completed":
             self.targetPosition = copy.deepcopy(targetPosition)
             stateName = "Unassigned"
-            targetFinishFlag = False
+            # targetFinishFlag = False
         elif self.StateNow.stateName == "Unassigned":
             # if there exists a new target, assign it
             if targetPosition:
                 self.targetPosition = copy.deepcopy(targetPosition)
                 stateName = "Assigned"
-            # if not, and if not all targets are visited, "Unassigned"
-            elif not targetAllFinishFlag:
-                self.targetPosition = list()
-                stateName = "Unassigned"
-            # if no new target for this agent, and all targets are visited, "Homing"
+            # if no new target for this agent, "Homing"
             else:
                 stateName = "Homing"
-            targetFinishFlag = False
+            # targetFinishFlag = False
         elif self.StateNow.stateName == "Assigned":
             self.targetPosition = copy.deepcopy(targetPosition)
-            targetFinishFlag = False
+            # targetFinishFlag = False
             if self.targetPosition:
                 # compute the distance between the current agent position and current target position
                 distance = math.sqrt(pow(agentPositionNow[0]-self.targetPosition[0], 2) + pow(agentPositionNow[1]-self.targetPosition[1], 2))

@@ -2,11 +2,11 @@
     "QUALISYS": {
         "IP_MOCAP_SERVER": "192.168.1.122",
         "IP_STATES_ESTIMATION": "127.0.0.1",
-        "PORT_STATES_ESTIMATION": "9011",
+        "PORT_STATES_ESTIMATION": "9000",
         "DATA_NUMBERS_STATES_ESTIMATION": "13",
         "DATA_BYTES_MAX": "6656",
         "NAME_SINGLE_BODY": "mambo_01",
-        "PORT_POSITION_PLANNER": "9061",
+        "PORT_POSITION_PLANNER": "9050",
 
         "NAME_OBSTACLE": "obs_01",
         "IP_OBS_POSITION": "127.0.0.1",

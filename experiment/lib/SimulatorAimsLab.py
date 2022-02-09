@@ -440,10 +440,12 @@ class SimulatorAimsLab(Simulator):
         elif case_num == 4:
             self.gen_obs_ret(pt_lbc=[-0.22, -0.10], obs_size=[0.3, 1.2])
             self.gen_obs_ret(pt_lbc=[-1.15, -2.04], obs_size=[0.65, 0.65])
+        # above for single agent
         elif case_num == 5:
-            self.gen_obs_ret(pt_lbc=[0.8, -0.63], obs_size=[0.63, 2.05])
-            self.gen_obs_ret(pt_lbc=[-1.07, 1.90], obs_size=[0.63, 1.8])
-            self.gen_obs_ret(pt_lbc=[-1.15, -2.04], obs_size=[0.65, 0.65])
+            pass
+            # self.gen_obs_ret(pt_lbc=[0.8, -0.63], obs_size=[0.63, 2.05])
+            # self.gen_obs_ret(pt_lbc=[-1.07, 1.90], obs_size=[0.63, 1.8])
+            # self.gen_obs_ret(pt_lbc=[-1.15, -2.04], obs_size=[0.65, 0.65])
         elif case_num == 6:
             self.gen_obs_ret(pt_lbc=[0.8, -0.63], obs_size=[0.63, 2.05])
             self.gen_obs_ret(pt_lbc=[-1.07, 1.90], obs_size=[0.63, 1.8])

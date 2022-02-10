@@ -6,11 +6,7 @@
         "DATA_NUMBERS_STATES_ESTIMATION": "13",
         "DATA_BYTES_MAX": "6656",
         "NAME_SINGLE_BODY": "mambo_02",
-        "PORT_POSITION_PLANNER": "9250",
-
-        "NAME_OBSTACLE": "obs_01",
-        "IP_OBS_POSITION": "127.0.0.1",
-        "PORT_OBS_POSITION": "11000"
+        "PORT_POSITION_PLANNER": "9250"
     },
 
     "MAMBO": {

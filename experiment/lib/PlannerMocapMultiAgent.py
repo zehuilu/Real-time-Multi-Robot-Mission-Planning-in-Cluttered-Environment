@@ -20,6 +20,7 @@ with pathmagic.context(EXTERNAL_FLAG=True):
 DISTANCE_THRESHOLD = 0.25
 BUFFER_BOUNDARY = 0.15
 CASE_NUM = 5
+DYNAMIC_OBS_FLAG = False
 
 
 class PlannerMocapMultiAgent:
@@ -93,8 +94,16 @@ class PlannerMocapMultiAgent:
 
         # create a customized UDP protocol for subscribing obstacles positions from mocap
         loopObs = asyncio.get_running_loop()
-        self.transportObs, self.protocolObs = await loopObs.create_datagram_endpoint(
+        transportObs01, protocolObs01 = await loopObs.create_datagram_endpoint(
             UdpProtocol, local_addr=self.serverAddressObs, remote_addr=None)
+
+        self.transportObsList = [transportObs01]
+        self.protocolObsList = [protocolObs01]
+        obsSizeList = [[0.30, 0.30]]
+
+        if not DYNAMIC_OBS_FLAG:
+            obsPosiList = list()
+            obsSizeList = list()
 
         # get the agent home position
         self.agentHomeList = await self.updateStateMocap()
@@ -105,6 +114,8 @@ class PlannerMocapMultiAgent:
         targetPositionQualisys = self.generateTargetManually(CASE_NUM)
         # generate obstacles manually
         self.MySimulator.generate_obs_manually(CASE_NUM)
+        # initialize the map with static obstacles
+        self.mapArrayInitial = self.MySimulator.map_array.copy()
 
         # transform qualisys coordinates (meter) to map array (index)
         agentPositionIndex = self.MySimulator.qualisys_to_map_index_all(self.agentHomeList)
@@ -138,6 +149,17 @@ class PlannerMocapMultiAgent:
             # update the agent position
             agentPositionList = await self.updateStateMocap()
 
+            if DYNAMIC_OBS_FLAG:
+                # update the obstacle position
+                obsPosiList = await self.updateObsMocap()
+
+                # initialize the map as the static one
+                self.MySimulator.map_array = self.mapArrayInitial.copy()
+
+                # update the map
+                for idx in range (len(obsPosiList)):
+                    self.MySimulator.update_obs_map_by_center(obsPosiList[idx], obsSizeList[idx])
+
             # update targets by Finite State Machine
             targetPosiQualisys3d, missionFinishFlagList, endFlagList = self.updateTargetSet(agentPositionList, targetPosiQualisys3d)
 
@@ -152,8 +174,8 @@ class PlannerMocapMultiAgent:
             targetPlotList = self.targetQualisys3dTo2d(targetPosiQualisys3d)
 
             # update the figure
-            self.MySimulator.update_realtime_plot(
-                positionTrajList, agentPositionList, targetPlotList, self.ax)
+            self.MySimulator.update_realtime_plot(positionTrajList, agentPositionList,
+                                                  targetPlotList, self.ax, obsPosiList, obsSizeList)
 
             # plot the algorithm time
             timeStr = "Computation Time [ms]: " + str(timeAlgo_ms)
@@ -162,7 +184,7 @@ class PlannerMocapMultiAgent:
             plt.pause(1E-9)
             timeSleep = max(0, 1/self.planningFrequency - time.time() + tStart)
             timeUsed = time.time() - timeBegin
-            print("Current Time [sec]: " + str(timeUsed))
+            # print("Current Time [sec]: " + str(timeUsed))
             await asyncio.sleep(timeSleep)
 
     def runSolverOnce(self, agentPosition2d, targetPosiQualisys3d, clusterCenter, missionFinishFlagList):
@@ -259,8 +281,8 @@ class PlannerMocapMultiAgent:
         """
         # transform map array (index) to qualisys coordinates (meter)
         pathQualisysList = list()
-        for idx in range(len(pathAllIndex)):
-            pathQualisysList.append(self.MySimulator.path_index_to_qualisys(pathAllIndex[idx], self.heightFly))
+        for idxAgent in range(self.numAgent):
+            pathQualisysList.append(self.MySimulator.path_index_to_qualisys(pathAllIndex[idxAgent], self.heightFly))
 
         # generate position and velocity trajectories (as a motion planner)
         # t0 = time.time()
@@ -269,10 +291,13 @@ class PlannerMocapMultiAgent:
         timeNow = time.time()
 
         positionTrajList = list()
-        for idxAgent in range(len(pathQualisysList)):
+        for idxAgent in range(self.numAgent):
             # if this agent is "End", stop sending trajectories and it will land
             if not endFlagList[idxAgent]:
-                if pathQualisysList[idxAgent]:
+                # pathAllIndex[idxAgent] could be [] or [[], [px,py, ...], [px,py, ...]]
+                # to check if it's empty, you have to slice [0:1] and flatten as a 1d list
+                path = list(chain.from_iterable(pathAllIndex[idxAgent][0:1]))
+                if path:
                     try:
                         # if the path has more than two nodes, do quadratic interpolation
                         if len(pathQualisysList[idxAgent]) > 2:
@@ -473,12 +498,16 @@ class PlannerMocapMultiAgent:
     async def updateObsMocap(self):
         """
         Update the obstacle positions from motion capture system.
+
+        Output:
+            positionList: 2D list for obstacles positions (in Qualisys coordinates),
+                [[x0,y0,z0], [x1,y1,z1], ...]
         """
-        msg = await self.protocolObs.recvfrom()
-        positionObs = np.frombuffer(msg, dtype=np.float64)
-        # print("positionObs")
-        # print(positionObs.tolist())
-        return positionObs.tolist()
+        positionList = list()
+        for idx in range(len(self.protocolObsList)):
+            msg = await self.protocolObsList[idx].recvfrom()
+            positionList.append(np.frombuffer(msg, dtype=np.float64).tolist())
+        return positionList
 
     def generateTargetManually(self, case_num: int):
         """

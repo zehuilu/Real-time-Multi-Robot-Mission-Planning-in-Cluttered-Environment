@@ -10,7 +10,7 @@
 
         "NAME_OBSTACLE": "obs_01",
         "IP_OBS_POSITION": "127.0.0.1",
-        "PORT_OBS_POSITION": "8000"
+        "PORT_OBS_POSITION": "7000"
     },
 
     "MAMBO": {

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import asyncio
+import math
+import copy
 import time
 import json
 from itertools import chain
@@ -18,9 +20,14 @@ with pathmagic.context(EXTERNAL_FLAG=True):
 
 # when distance between A and B < this number, we say A and B have same position
 DISTANCE_THRESHOLD = 0.25
-BUFFER_BOUNDARY = 0.15
-CASE_NUM = 5
+BUFFER_BOUNDARY = 0.10
+CASE_NUM = 7
 DYNAMIC_OBS_FLAG = False
+DYNAMIC_TASK_FLAG = False
+if CASE_NUM == 6:
+    DYNAMIC_OBS_FLAG = True
+if CASE_NUM == 7:
+    DYNAMIC_TASK_FLAG = True
 
 
 class PlannerMocapMultiAgent:
@@ -59,6 +66,10 @@ class PlannerMocapMultiAgent:
         self.serverAddressObs = (self.configDataList[0][self.mocapType]["IP_OBS_POSITION"],
                                  int(self.configDataList[0][self.mocapType]["PORT_OBS_POSITION"]))
 
+        # the address for publishing tasks positions from mocap
+        self.serverAddressTask = (self.configDataList[1][self.mocapType]["IP_OBS_POSITION"],
+                                  int(self.configDataList[1][self.mocapType]["PORT_OBS_POSITION"]))
+
     async def runPlanner(self):
         """
         Run the planner online with Motion Capture System.
@@ -82,28 +93,30 @@ class PlannerMocapMultiAgent:
 
         # create a customized UDP protocol for subscribing states from mocap
         loopState01 = asyncio.get_running_loop()
-        transportState01, protocolState01 = await loopState01.create_datagram_endpoint(
+        _, protocolState01 = await loopState01.create_datagram_endpoint(
             UdpProtocol, local_addr=self.stateAddressList[0], remote_addr=None)
 
         loopState02 = asyncio.get_running_loop()
-        transportState02, protocolState02 = await loopState02.create_datagram_endpoint(
+        _, protocolState02 = await loopState02.create_datagram_endpoint(
             UdpProtocol, local_addr=self.stateAddressList[1], remote_addr=None)
 
-        self.transportStateList = [transportState01, transportState02]
         self.protocolStateList = [protocolState01, protocolState02]
 
         # create a customized UDP protocol for subscribing obstacles positions from mocap
         loopObs = asyncio.get_running_loop()
-        transportObs01, protocolObs01 = await loopObs.create_datagram_endpoint(
+        _, protocolObs01 = await loopObs.create_datagram_endpoint(
             UdpProtocol, local_addr=self.serverAddressObs, remote_addr=None)
-
-        self.transportObsList = [transportObs01]
         self.protocolObsList = [protocolObs01]
         obsSizeList = [[0.30, 0.30]]
 
         if not DYNAMIC_OBS_FLAG:
             obsPosiList = list()
             obsSizeList = list()
+
+        # create a customized UDP protocol for subscribing a task position from mocap
+        loopTask = asyncio.get_running_loop()
+        _, self.protocolTask01 = await loopTask.create_datagram_endpoint(
+            UdpProtocol, local_addr=self.serverAddressTask, remote_addr=None)
 
         # get the agent home position
         self.agentHomeList = await self.updateStateMocap()
@@ -116,6 +129,10 @@ class PlannerMocapMultiAgent:
         self.MySimulator.generate_obs_manually(CASE_NUM)
         # initialize the map with static obstacles
         self.mapArrayInitial = self.MySimulator.map_array.copy()
+
+        if DYNAMIC_TASK_FLAG:
+            dynTaskPosi = await self.updateTaskMocap()
+            targetPositionQualisys.append(dynTaskPosi)
 
         # transform qualisys coordinates (meter) to map array (index)
         agentPositionIndex = self.MySimulator.qualisys_to_map_index_all(self.agentHomeList)
@@ -149,6 +166,7 @@ class PlannerMocapMultiAgent:
             # update the agent position
             agentPositionList = await self.updateStateMocap()
 
+            # update dynamic obstacles
             if DYNAMIC_OBS_FLAG:
                 # update the obstacle position
                 obsPosiList = await self.updateObsMocap()
@@ -162,6 +180,25 @@ class PlannerMocapMultiAgent:
 
             # update targets by Finite State Machine
             targetPosiQualisys3d, missionFinishFlagList, endFlagList = self.updateTargetSet(agentPositionList, targetPosiQualisys3d)
+
+            # update dynamic tasks
+            if DYNAMIC_TASK_FLAG:
+                # update task position
+                dynTaskPosiNow = await self.updateTaskMocap()
+                breakFlag = False  # True to break for-loops
+
+                for idxAgent in range(len(targetPosiQualisys3d)):
+                    for idx in range(len(targetPosiQualisys3d[idxAgent])):
+                        # check which one is the dynamic task
+                        if math.sqrt((dynTaskPosi[0]-targetPosiQualisys3d[idxAgent][idx][0])**2 + \
+                                     (dynTaskPosi[1]-targetPosiQualisys3d[idxAgent][idx][1])**2) <= 1E-2:
+                            # update the dynamic task position
+                            targetPosiQualisys3d[idxAgent][idx] = copy.deepcopy(dynTaskPosiNow)
+                            dynTaskPosi = copy.deepcopy(dynTaskPosiNow)
+                            breakFlag = True
+                            break
+                    if breakFlag:
+                        break
 
             # do the planning
             pathAllIndex, targetPosiQualisys3d, clusterCenter, timeAlgo_ms = self.runSolverOnce(
@@ -303,7 +340,7 @@ class PlannerMocapMultiAgent:
                         if len(pathQualisysList[idxAgent]) > 2:
                             timeQueueVec, positionTraj, velocityTraj = discrete_path_to_time_traj(
                                 pathQualisysList[idxAgent], dt, velocityAveList[idxAgent],
-                                interp_kind='quadratic', velocity_flag=True, ini_velocity_zero_flag=False)
+                                interp_kind='linear', velocity_flag=True, ini_velocity_zero_flag=False)
                         # if the path has two nodes, do linear interpolation
                         else:
                             timeQueueVec, positionTraj, velocityTraj = discrete_path_to_time_traj(
@@ -509,6 +546,18 @@ class PlannerMocapMultiAgent:
             positionList.append(np.frombuffer(msg, dtype=np.float64).tolist())
         return positionList
 
+    async def updateTaskMocap(self):
+        """
+        Update one task position from motion capture system.
+
+        Output:
+            position: 1D list for obstacles positions (in Qualisys coordinates), [x0, y0, self.heightFly]
+        """
+        msg = await self.protocolTask01.recvfrom()
+        position = np.frombuffer(msg, dtype=np.float64).tolist()
+        position[2] = self.heightFly
+        return position
+
     def generateTargetManually(self, case_num: int):
         """
         Generate some targets in Qualisys coordinates (meter) manually.
@@ -517,15 +566,23 @@ class PlannerMocapMultiAgent:
             targetPosition: [[x0,y0,z0], [x1,y1,z1], ...]
         """
         if case_num == 5:
-            targetPosition = [[1.18, 0.0, self.heightFly], [1.7, 0.5, self.heightFly],
-                                [1.8, 0.9, self.heightFly], [0.4, 0.9, self.heightFly],
-                                [1.8, -0.9, self.heightFly], [1.86, -1.8, self.heightFly],
-                                [1.9, -1.4, self.heightFly]]
+            targetPosition = [[1.18, 0.0, self.heightFly],   [1.7, 0.5, self.heightFly],
+                              [1.8, 0.9, self.heightFly],    [0.4, 1.1, self.heightFly],
+                              [1.9, -0.9, self.heightFly],   [1.9, -1.4, self.heightFly],
+                              [0.19, -0.46, self.heightFly], [0.23, 0.17, self.heightFly],
+                              [1.76, -0.35, self.heightFly], [0.18, -1.52, self.heightFly]]
         elif case_num == 6:
-            targetPosition = [[1.0, 0.0, self.heightFly], [1.7, 0.5, self.heightFly],
-                                [1.5, 0.9, self.heightFly], [0.4, 0.9, self.heightFly],
-                                [1.8, -0.5, self.heightFly], [1.86, -1.8, self.heightFly],
-                                [1.9, -1.4, self.heightFly]]
+            targetPosition = [[1.18, 0.0, self.heightFly],   [1.7, 0.5, self.heightFly],
+                              [1.8, 0.9, self.heightFly],    [0.4, 1.1, self.heightFly],
+                              [1.9, -0.9, self.heightFly],   [1.9, -1.4, self.heightFly],
+                              [0.19, -0.46, self.heightFly], [0.23, 0.17, self.heightFly],
+                              [1.76, -0.35, self.heightFly], [0.18, -1.52, self.heightFly]]
+        elif case_num == 7:
+            targetPosition = [[1.18, 0.0, self.heightFly],   [1.8, 0.9, self.heightFly],  
+                              [0.4, 1.1, self.heightFly],    [1.9, -0.9, self.heightFly],
+                              [1.9, -1.4, self.heightFly],   [0.19, -0.46, self.heightFly],
+                              [0.23, 0.17, self.heightFly],  [1.76, -0.35, self.heightFly],
+                              [0.18, -1.52, self.heightFly]]
         else:
             pass
         return targetPosition

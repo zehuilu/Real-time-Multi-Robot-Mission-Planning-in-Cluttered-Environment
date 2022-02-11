@@ -6,7 +6,11 @@
         "DATA_NUMBERS_STATES_ESTIMATION": "13",
         "DATA_BYTES_MAX": "6656",
         "NAME_SINGLE_BODY": "mambo_02",
-        "PORT_POSITION_PLANNER": "9250"
+        "PORT_POSITION_PLANNER": "9250",
+
+        "NAME_OBSTACLE": "target_01",
+        "IP_OBS_POSITION": "127.0.0.1",
+        "PORT_OBS_POSITION": "8000"
     },
 
     "MAMBO": {
@@ -27,9 +31,9 @@
         "KD_HEIGHT": "2.0",
 
         "FWDFEED_PITCH": "0.0",
-        "KP_PITCH": "18.0",
+        "KP_PITCH": "28.0",
         "KI_PITCH": "0.0",
-        "KD_PITCH": "8.0",
+        "KD_PITCH": "12.0",
 
         "FWDFEED_ROLL": "0.0",
         "KP_ROLL": "22.0",

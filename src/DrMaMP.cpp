@@ -716,8 +716,8 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > mission_
                 int x = agent_position[2*idx_agent_];
                 int y = agent_position[2*idx_agent_+1];
 
-                int half_length_x = 2;
-                int half_length_y = 2;
+                int half_length_x = 4;
+                int half_length_y = 4;
 
                 int x_min = std::max(0, x-half_length_x);
                 int x_max = std::min(mapSizeX-1, x+half_length_x);

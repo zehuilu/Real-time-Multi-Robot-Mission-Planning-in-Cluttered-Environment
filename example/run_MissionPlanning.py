@@ -5,6 +5,7 @@ import pathmagic
 with pathmagic.context():
     from Simulator import Simulator
     import DrMaMP
+    from compute_path_distance import compute_path_distance_many_agents
 
 
 if __name__ == "__main__":
@@ -17,7 +18,7 @@ if __name__ == "__main__":
     # create a simulator
     MySimulator = Simulator(map_width_meter, map_height_meter, map_resolution, value_non_obs, value_obs)
     # number of obstacles
-    num_obs = 120
+    num_obs = 150
     # [width, length] size of each obstacle [meter]
     size_obs = [1, 1]
     # generate random obstacles
@@ -26,8 +27,8 @@ if __name__ == "__main__":
     world_map = MySimulator.map_array.flatten().tolist()
 
     # This is for an agent and a set of targets
-    num_agents = 3
-    num_targets = 12
+    num_agents = 8
+    num_targets = 40
     agent_position, targets_position = MySimulator.generate_agents_and_targets(num_agents, num_targets)
 
     # parameters for k-means
@@ -36,17 +37,20 @@ if __name__ == "__main__":
 
     t0 = time.time()
     # solve it
-    path_all_agents, task_allocation_all_agents, cluster_centers, points_idx_for_clusters, cluster_assigned_idx\
+    path_all_agents, task_order, cluster_centers, points_idx_for_clusters, cluster_assigned_idx\
         = DrMaMP.MissionPlanning(agent_position, targets_position, num_cluster,
-                                      number_of_iterations, world_map, MySimulator.map_width,
-                                      MySimulator.map_height)
+                                 number_of_iterations, world_map, MySimulator.map_width,
+                                 MySimulator.map_height)
     t1 = time.time()
     print("Time used [sec]:" + str(t1 - t0))
 
+    distance, distance_list = compute_path_distance_many_agents(path_all_agents)
+    print("Total distance: ", distance)
+
     print("path_all_agents")
     print(path_all_agents)
-    print("task_allocation_all_agents")
-    print(task_allocation_all_agents)
+    print("task_order")
+    print(task_order)
     print("cluster_centers")
     print(cluster_centers)
     print("points_idx_for_clusters")
@@ -55,6 +59,9 @@ if __name__ == "__main__":
     print(cluster_assigned_idx)
 
     # visualization
-    MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_all_agents, cluster_centers, points_idx_for_clusters)
-    MySimulator.plot_cluster_assign(agent_position, targets_position, points_idx_for_clusters, cluster_centers, cluster_assigned_idx)
+    MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_order,
+                           cluster_centers, points_idx_for_clusters, legend_flag=False,
+                           agent_text_flag=False, target_text_flag=False)
+    MySimulator.plot_cluster_assign(agent_position, targets_position, points_idx_for_clusters,
+                                    cluster_centers, cluster_assigned_idx, legend_flag=False)
     plt.show()

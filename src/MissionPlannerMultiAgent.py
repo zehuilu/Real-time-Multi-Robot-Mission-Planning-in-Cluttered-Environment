@@ -16,8 +16,8 @@ with pathmagic.context():
 
 # when distance between A and B < this number, we say A and B have same position
 DISTANCE_THRESHOLD = 1.414
-# True if some obstacles will walk randomly
-OBS_RANDOM_WALK_FLAG = True
+# True if some obstacles are dynamic
+OBS_DYNAMIC_FLAG = False
 
 
 class MissionPlannerMultiAgent:
@@ -68,9 +68,10 @@ class MissionPlannerMultiAgent:
         ax = self.MySimulator.create_realtime_plot(realtime_flag=True, cluster_legend_flag=True, path_legend_flag=True)
 
         # initialize task decomposition
-        path_all_agents, task_order, cluster_centers, points_idx_for_clusters, cluster_assigned_idx = \
+        path_all_agents, task_order, cluster_centers, _, _ = \
             DrMaMP.MissionPlanning(agents_position, targets_position, self.num_cluster, self.number_of_iterations,
-            self.MySimulator.map_array.flatten().tolist(), self.MySimulator.map_width, self.MySimulator.map_height)
+                                   self.MySimulator.map_array.flatten().tolist(), self.MySimulator.map_width,
+                                   self.MySimulator.map_height)
 
         # rearrange the targets, 1D to 2D list
         targets_position_2d = self.rearrange_targets(targets_position, task_order)
@@ -80,6 +81,16 @@ class MissionPlannerMultiAgent:
             self.list_AgentFSM.append(AgentFSM(agentIdx=idx_agent, distanceThreshold=DISTANCE_THRESHOLD))
             # initialize the FSM with the first target
             self.list_AgentFSM[idx_agent].initFSM(targetPosition=targets_position_2d[idx_agent][0:2])
+
+        # initialize movement direction of dynamic obstacles randomly
+        if OBS_DYNAMIC_FLAG:
+            self.num_obs_dynamic = 15
+            self.move_angle_list = list()
+            self.obs_left_top_corner_list = list()
+            for idx in range(self.num_obs_dynamic):
+                    self.move_angle_list.append(uniform(0.0, 360.0))
+                    self.obs_left_top_corner_list.append([self.MySimulator.obs_left_top_corner[idx][0],
+                                                          self.MySimulator.obs_left_top_corner[idx][1]])
 
         idx_iter = 0
         while(time_used < time_escape):
@@ -111,11 +122,12 @@ class MissionPlannerMultiAgent:
             print("Current Time [sec]: " + str(time_used))
             idx_iter += 1
 
-            # if True, regenerate random obstacles and update map array
-            if OBS_RANDOM_WALK_FLAG:
-                if (idx_iter < 20) and (abs(idx_iter % 6) <= 0.5):
-                    # update map
-                    self.update_obs(num_obs_update=int(0.2*self.num_obs))
+            # if True, move obstacles and then update map array
+            if OBS_DYNAMIC_FLAG:
+                # if idx_iter < 40:
+                # if idx_iter % 2 <= 0.5:
+                # update map
+                self.update_obs(mangitude=1.0)
 
             await asyncio.sleep(time_sleep)
 
@@ -262,31 +274,29 @@ class MissionPlannerMultiAgent:
 
         return agents_position_now, targets_position_2d
 
-    def update_obs(self, num_obs_update: int):
+    def update_obs(self, mangitude=1.0):
         """
         Update obstacles positions
         """
+        # empty map
         self.MySimulator.map_array = np.array([self.MySimulator.value_non_obs] * 
                                               (self.MySimulator.map_width * self.MySimulator.map_height)).\
                                      reshape(-1, self.MySimulator.map_width)
-
-        for idx_obs in range(self.num_obs):
-            if idx_obs < num_obs_update:
-                move_angle = uniform(0.0, 360.0)
-
-                mangitude = 2.0
-
-                px = int(round(self.MySimulator.obs_left_top_corner[idx_obs][0] + mangitude * math.cos(move_angle)))
-                py = int(round(self.MySimulator.obs_left_top_corner[idx_obs][1] + mangitude * math.sin(move_angle)))
+        for idx in range(self.num_obs):
+            if idx < self.num_obs_dynamic:
+                px = int(round(self.obs_left_top_corner_list[idx][0] + mangitude * math.cos(self.move_angle_list[idx])))
+                py = int(round(self.obs_left_top_corner_list[idx][1] + mangitude * math.sin(self.move_angle_list[idx])))
 
                 px = max(1, px)
                 px = min(self.MySimulator.map_width-self.MySimulator.size_obs_width-1, px)
                 py = max(1, py)
                 py = min(randint(1, self.MySimulator.map_height-self.MySimulator.size_obs_height-1), py)
-            else:
-                px = self.MySimulator.obs_left_top_corner[idx_obs][0]
-                py = self.MySimulator.obs_left_top_corner[idx_obs][1]
 
+                self.obs_left_top_corner_list[idx][0] = px
+                self.obs_left_top_corner_list[idx][1] = py
+            else:
+                px = self.MySimulator.obs_left_top_corner[idx][0]
+                py = self.MySimulator.obs_left_top_corner[idx][1]
             obs_mat = self.MySimulator.map_array[py : py+self.MySimulator.size_obs_height][:, px : px+self.MySimulator.size_obs_width]
 
             self.MySimulator.map_array[py : py+self.MySimulator.size_obs_height][:, px : px+self.MySimulator.size_obs_width] \

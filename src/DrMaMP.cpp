@@ -716,8 +716,13 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > mission_
                 int x = agent_position[2*idx_agent_];
                 int y = agent_position[2*idx_agent_+1];
 
-                int half_length_x = 4;
-                int half_length_y = 4;
+                // for experiments
+                // int half_length_x = 4;
+                // int half_length_y = 4;
+
+                // for simulations
+                int half_length_x = 1;
+                int half_length_y = 1;
 
                 int x_min = std::max(0, x-half_length_x);
                 int x_max = std::min(mapSizeX-1, x+half_length_x);
@@ -904,60 +909,6 @@ inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::
 }
 
 
-inline std::tuple< std::vector<std::vector<std::vector<int>>>, std::vector<std::vector<size_t>> > MissionPlanningWithClustering(
-    const std::vector<int>& agent_position,
-    const std::vector<int>& targets_position,
-    const std::vector<std::vector<size_t>>& points_idx_for_clusters,
-    const std::vector<size_t>& cluster_assigned_idx,
-    const std::vector<int> &Map,
-    const int &mapSizeX,
-    const int &mapSizeY)
-{
-    size_t num_agents = agent_position.size()/2;
-
-    // a 3D vector, each sub 2D vector is the path for each agent
-    std::vector<std::vector<std::vector<int>>> path_all_agents;
-
-    // a 2D vector, each sub 1D vector indicates the task allocation order for each agent
-    // note that this index is for local target set
-    std::vector<std::vector<size_t>> task_allocation_agents_local;
-
-    // a vector of result of asynchronous operations
-    std::vector<std::future< std::tuple<std::vector<std::vector<int>>, std::vector<size_t>> >> vec_async_op;
-
-    for (size_t idx_agent = 0; idx_agent < num_agents; ++idx_agent) {
-        vec_async_op.push_back(std::async(std::launch::async, &mission_planning_one_agent<size_t>, idx_agent, agent_position, targets_position,
-            cluster_assigned_idx, points_idx_for_clusters, Map, mapSizeX, mapSizeY));
-    }
-
-    for (auto &async_op : vec_async_op) {
-        std::tuple<std::vector<std::vector<int>>, std::vector<size_t>> result_tuple_one_agent = async_op.get();
-        path_all_agents.push_back(std::get<0>(result_tuple_one_agent));
-        task_allocation_agents_local.push_back(std::get<1>(result_tuple_one_agent));
-    }
-
-    // convert the local target index to the global target index
-    std::vector<std::vector<size_t>> task_allocation_agents;
-    for (size_t idx_agent = 0; idx_agent < num_agents; ++idx_agent) {
-        // the cluster index for current agent
-        size_t cluster_idx_this = cluster_assigned_idx[idx_agent];
-        // the associated targets set/pool
-        std::vector<size_t> targets_pool_this = points_idx_for_clusters[cluster_idx_this];
-        // the global target index vector for current agent
-        std::vector<size_t> task_allocation_this;
-        for (size_t i = 0; i < targets_pool_this.size(); ++i) {
-            // the global target index
-            size_t task_id_this = task_allocation_agents_local[idx_agent][i];
-            // bundle this index by a given sequence
-            task_allocation_this.push_back(targets_pool_this[task_id_this]);
-        }
-        task_allocation_agents.push_back(task_allocation_this);
-    }
-
-    return {path_all_agents, task_allocation_agents};
-}
-
-
 inline std::vector<std::vector<int>> path_planning_one_agent_many_tasks(
     const size_t &idx_agent,
     const std::vector<int> &agent_position,
@@ -986,8 +937,13 @@ inline std::vector<std::vector<int>> path_planning_one_agent_many_tasks(
                 int x = agent_position[2*idx_agent_];
                 int y = agent_position[2*idx_agent_+1];
 
-                int half_length_x = 3;
-                int half_length_y = 3;
+                // for experiments
+                // int half_length_x = 3;
+                // int half_length_y = 3;
+
+                // for simulations
+                int half_length_x = 1;
+                int half_length_y = 1;
 
                 int x_min = std::max(0, x-half_length_x);
                 int x_max = std::min(mapSizeX-1, x+half_length_x);
@@ -1130,24 +1086,28 @@ inline PYBIND11_MODULE(DrMaMP, module) {
 
     module.def("FindPath", &FindPath, "Find a collision-free path from a start to a target");
 
-    module.def("FindPathMany", &FindPathMany, "Find all the collision-free paths from every element to another element in start+targets");
+    module.def("FindPathMany", &FindPathMany,
+               "Find all the collision-free paths from every element to another element in start+targets");
 
     module.def("FindPathOneByOne", &FindPathOneByOne, "Find all the collision-free paths consecutively");
 
     module.def("SolveOneAgent", &SolveOneAgent, 
-        "Find all the collision-free paths from every element to another element in start+targets, and return an optimal order for the agent to explore all the targets, and the concatenated path given the order.");
+               "Find all the collision-free paths from every element to another element in start+targets, and return an optimal order for the agent to explore all the targets, and the concatenated path given the order.");
 
     module.def("KMeans", &KMeans, "K-means Clustering to segment all the targets to several clusters");
 
-    module.def("AssignCluster", &AssignCluster, "K-means Clustering first, then assign clusters to agents, #clusters >= #agents");
+    module.def("AssignCluster", &AssignCluster,
+               "K-means Clustering first, then assign clusters to agents, #clusters >= #agents");
 
-    module.def("MissionPlanning", &MissionPlanning, "K-means Clustering, then assign clusters to agents, and run SolveOneAgent for each agent (with multithreading)");
+    module.def("MissionPlanning", &MissionPlanning,
+               "K-means Clustering, then assign clusters to agents, and run SolveOneAgent for each agent (with multithreading)");
 
-    module.def("MissionPlanningIteratively", &MissionPlanningIteratively, "K-means Clustering with previous centroids, then assign clusters to agents, and run SolveOneAgent for each agent (with multithreading)");
+    module.def("MissionPlanningIteratively", &MissionPlanningIteratively,
+               "K-means Clustering with previous centroids, then assign clusters to agents, and run SolveOneAgent for each agent (with multithreading)");
 
-    module.def("MissionPlanningWithClustering", &MissionPlanningWithClustering, "Run SolveOneAgent for each agent (with multithreading) given a clustering result");
+    module.def("PathPlanningMultiAgent", &PathPlanningMultiAgent,
+               "Planning path for multiple agents, each agent is associated with a target");
 
-    module.def("PathPlanningMultiAgent", &PathPlanningMultiAgent, "Planning path for multiple agents, each agent is associated with a target");
-
-    module.def("MissionPlanning_legacy", &MissionPlanning_legacy, "Old version of MissionPlanning using for-loops (without multithreading)");
+    module.def("MissionPlanning_legacy", &MissionPlanning_legacy,
+               "Old version of MissionPlanning using for-loops (without multithreading)");
 }

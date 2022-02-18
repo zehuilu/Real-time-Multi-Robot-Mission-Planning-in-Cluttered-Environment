@@ -186,7 +186,8 @@ class Simulator:
 
     def plot_paths(self, path_many_agents: list, agents_position: list,
                        targets_position: list, task_order: list,
-                       cluster_centers: list, points_idx_for_clusters: list):
+                       cluster_centers: list, points_idx_for_clusters: list,
+                       legend_flag=True, agent_text_flag=True, target_text_flag=True):
         """
         Plot many paths for multiple agents.
 
@@ -205,33 +206,46 @@ class Simulator:
         text_offset = (self.map_width - 0) / 40
 
         # the first figure is without the solved path
-        ax_before = self.create_realtime_plot(realtime_flag=False, cluster_legend_flag=False, path_legend_flag=False)
+        realtime_flag = False
+        cluster_legend_flag = False
+        path_legend_flag = False
+        ax_before = self.create_realtime_plot(realtime_flag, cluster_legend_flag, path_legend_flag, legend_flag)
         # plot the map
         cmap = matplotlib.colors.ListedColormap(['white','black'])
         ax_before.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
         # plot agents and targets
-        self.plot_agents(agents_position, text_offset, ax_before)
-        self.plot_targets(targets_position, [], [], text_offset, ax_before)
+        self.plot_agents(agents_position, text_offset, ax_before, agent_text_flag)
+        target_color_flag = False
+        self.plot_targets(targets_position, [], [], text_offset, ax_before, target_color_flag, target_text_flag)
 
         # the second figure is with the solved path
-        ax = self.create_realtime_plot(realtime_flag=False, cluster_legend_flag=True, path_legend_flag=True)
+        realtime_flag = False
+        cluster_legend_flag = True
+        path_legend_flag = True
+        ax = self.create_realtime_plot(realtime_flag, cluster_legend_flag, path_legend_flag, legend_flag)
         # plot the map
         cmap = matplotlib.colors.ListedColormap(['white','black'])
         ax.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
         # plot agents and targets
-        self.plot_agents(agents_position, text_offset, ax)
-        self.plot_targets(targets_position, cluster_centers, points_idx_for_clusters, text_offset, ax)
+        self.plot_agents(agents_position, text_offset, ax, agent_text_flag)
+        target_color_flag = False
+        self.plot_targets(targets_position, cluster_centers, points_idx_for_clusters,
+                          text_offset, ax, target_color_flag, target_text_flag)
         # plot paths
         self.plot_paths_figure(path_many_agents, agents_position, targets_position, task_order, ax)
         plt.show(block=False)
 
     def plot_cluster_assign(self, agents_position: list, targets_position: list,
-                            points_idx_for_clusters: list, cluster_centers: list, cluster_assigned_idx: list):
+                            points_idx_for_clusters: list, cluster_centers: list,
+                            cluster_assigned_idx: list, legend_flag=True):
         """
         plot agents, targets, and cluster centers from ClusterAssign
         """
         # create a figure with legends
-        ax = self.create_realtime_plot(realtime_flag=False, cluster_legend_flag=True, path_legend_flag=False)
+        realtime_flag = False
+        cluster_legend_flag = False
+        path_legend_flag = False
+        ax = self.create_realtime_plot(realtime_flag, cluster_legend_flag, path_legend_flag, legend_flag)
 
         # a color list, each entry is for each cluster
         color_by_cluster = np.linspace(0, 1, num=int(len(points_idx_for_clusters)))
@@ -268,23 +282,24 @@ class Simulator:
 
         plt.show(block=False)
 
-    def create_realtime_plot(self, realtime_flag=True, cluster_legend_flag=False, path_legend_flag=True):
+    def create_realtime_plot(self, realtime_flag=True, cluster_legend_flag=False, path_legend_flag=True, legend_flag=True):
         """
         Create a realtime plotting figure.
         """
-        _, ax = plt.subplots(1, 1)
+        _, ax = plt.subplots(1, 1, figsize=(12, 10))
         if realtime_flag:
             plt.ion()
             plt.show()
         # figure settings
-        handles, labels = self.figure_settings(ax, cluster_legend_flag, path_legend_flag)
-        legend = plt.legend(handles, labels, bbox_to_anchor=(1, 1), loc="upper left", framealpha=1)
+        handles, labels = self.figure_settings(ax, cluster_legend_flag, path_legend_flag, legend_flag)
+        if legend_flag:
+            legend = plt.legend(handles, labels, bbox_to_anchor=(1, 1), loc="upper left", framealpha=1)
         return ax
 
     def update_realtime_plot(self, path_many_agents: list, agents_position: list,
                              targets_position: list, task_order: list,
                              cluster_centers: list, points_idx_for_clusters: list, ax,
-                             plot_cluster_flag=False):
+                             plot_cluster_flag=False, legend_flag=True):
         """
         Update realtime plotting once in an existing figure. See input details in self.plot_paths()
         """
@@ -303,22 +318,24 @@ class Simulator:
             # plot paths
             self.plot_paths_figure(path_many_agents, agents_position,
                                    targets_position, task_order, ax)
-        # plot legends
-        handles, labels = self.figure_settings(ax, cluster_legend_flag=True, path_legend_flag=True)
-        legend = plt.legend(handles, labels, bbox_to_anchor=(1, 1), loc="upper left", framealpha=1)
+        if legend_flag:
+            # plot legends
+            handles, labels = self.figure_settings(ax, cluster_legend_flag=True, path_legend_flag=True)
+            legend = plt.legend(handles, labels, bbox_to_anchor=(1, 1), loc="upper left", framealpha=1)
         plt.draw()
 
-    def plot_agents(self, agents_position: list, text_offset: float, ax):
+    def plot_agents(self, agents_position: list, text_offset: float, ax, agent_text_flag=True):
         """
         Plot agents.
         """
         for idx_agent in range(int(len(agents_position)/2)):
             ax.scatter(agents_position[2*idx_agent]+0.5, agents_position[2*idx_agent+1]+0.5, marker="o", color="blue")
-            ax.text(agents_position[2*idx_agent]+text_offset, agents_position[2*idx_agent+1]+text_offset,
-                    "A"+str(idx_agent), fontweight="bold", color="blue")
+            if agent_text_flag:
+                ax.text(agents_position[2*idx_agent]+text_offset, agents_position[2*idx_agent+1]+text_offset,
+                        "A"+str(idx_agent), fontweight="bold", color="blue")
 
     def plot_targets(self, targets_position: list, cluster_centers: list, points_idx_for_clusters: list,
-                     text_offset: float, ax, target_color_flag=False):
+                     text_offset: float, ax, target_color_flag=False, target_text_flag=True):
         """
         Plot targets.
 
@@ -354,8 +371,9 @@ class Simulator:
                 # if cluster_centers is empty, plot targets
                 for idx_target in range(int(len(targets_position)/2)):
                     ax.scatter(targets_position[2*idx_target]+0.5, targets_position[2*idx_target+1]+0.5, marker="x", color="red")
-                    ax.text(targets_position[2*idx_target]+text_offset, targets_position[2*idx_target+1]+text_offset,
-                            "T"+str(idx_target), fontweight="bold", color="red")
+                    if target_text_flag:
+                        ax.text(targets_position[2*idx_target]+text_offset, targets_position[2*idx_target+1]+text_offset,
+                                "T"+str(idx_target), fontweight="bold", color="red")
                 # plot cluster centers
                 for i in range(0, int(len(cluster_centers)), 2):
                     if cluster_centers[i] >= 0:
@@ -364,8 +382,9 @@ class Simulator:
             # if cluster_centers is empty, plot targets
             for idx_target in range(int(len(targets_position)/2)):
                 ax.scatter(targets_position[2*idx_target]+0.5, targets_position[2*idx_target+1]+0.5, marker="x", color="red")
-                ax.text(targets_position[2*idx_target]+text_offset, targets_position[2*idx_target+1]+text_offset,
-                        "T"+str(idx_target), fontweight="bold", color="red")
+                if target_text_flag:
+                    ax.text(targets_position[2*idx_target]+text_offset, targets_position[2*idx_target+1]+text_offset,
+                            "T"+str(idx_target), fontweight="bold", color="red")
 
     def plot_paths_figure(self, path_many_agents: list, agents_position: list,
                                      targets_position: list, task_order: list, ax):
@@ -401,7 +420,7 @@ class Simulator:
                                     [targets_position[2*idx_task_now+1]+0.5,targets_position[2*idx_task_next+1]+0.5],
                                     linestyle='dashed', linewidth=2, color='red')
 
-    def figure_settings(self, ax, cluster_legend_flag: bool, path_legend_flag: bool):
+    def figure_settings(self, ax, cluster_legend_flag: bool, path_legend_flag: bool, legend_flag=True):
         """
         Settings for the figure.
 
@@ -415,22 +434,26 @@ class Simulator:
         ax.set_ylim([0, self.map_height])
 
         # set legends
-        if cluster_legend_flag:
-            colors = ["blue", "red", "purple"]
-            marker_list = ["o", "x", "*"]
-            labels = ["Agent", "Task", "Cluster Center"]
-        else:
-            colors = ["blue", "red"]
-            marker_list = ["o", "x"]
-            labels = ["Agent", "Task"]
-        f = lambda m,c: plt.plot([],[],marker=m, color=c, ls="none")[0]
-        handles = [f(marker_list[i], colors[i]) for i in range(len(labels))]
+        if legend_flag:
+            if cluster_legend_flag:
+                colors = ["blue", "red", "purple"]
+                marker_list = ["o", "x", "*"]
+                labels = ["Agent", "Task", "Cluster Center"]
+            else:
+                colors = ["blue", "red"]
+                marker_list = ["o", "x"]
+                labels = ["Agent", "Task"]
+            f = lambda m,c: plt.plot([],[],marker=m, color=c, ls="none")[0]
+            handles = [f(marker_list[i], colors[i]) for i in range(len(labels))]
 
-        if path_legend_flag:
-            # add legend about path
-            handles.append(plt.plot([],[], linestyle="dashed", color="green", linewidth=2)[0])
-            handles.append(plt.plot([],[], linestyle="dashed", color="red", linewidth=2)[0])
-            handles.append(patches.Patch(color="black", alpha=0.5))
-            labels.extend(["Path", "No Path", "Obstacles"])
-        # a tuple includes the handles and labels of legend
+            if path_legend_flag:
+                # add legend about path
+                handles.append(plt.plot([],[], linestyle="dashed", color="green", linewidth=2)[0])
+                handles.append(plt.plot([],[], linestyle="dashed", color="red", linewidth=2)[0])
+                handles.append(patches.Patch(color="black", alpha=0.5))
+                labels.extend(["Path", "No Path", "Obstacles"])
+                # a tuple includes the handles and labels of legend
+        else:
+            handles = list()
+            labels = list()
         return handles, labels

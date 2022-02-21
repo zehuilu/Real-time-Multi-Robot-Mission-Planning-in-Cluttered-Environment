@@ -14,6 +14,11 @@ with pathmagic.context(EXTERNAL_FLAG=True):
     from discrete_path_to_time_traj import discrete_path_to_time_traj
 
 
+# NOTE: I revised `AgentFSMExp.py` to make the hardware experiment with multiple agents work.
+# But I haven't revised the scripts about single agent case. I will do that later (Feb. 21, 2022).
+# But any scripts related to multiple agents DO work.
+
+
 CASE_NUM = 4
 DISTANCE_SQUARE_RESOLUTION = 0.04
 BUFFER_BOUNDARY = 0.15
@@ -78,7 +83,7 @@ class PlannerMocap:
         # get the agent home position
         self.agent_home_qualisys = await self.update_states_mocap()
 
-        self.height_fly = 1.0  # a constant fly height in meter
+        self.height_fly = 0.8  # a constant fly height in meter
         # generate targets manually
         targets_position_qualisys = self.generate_targets_manually(CASE_NUM)
         # generate obstacles manually

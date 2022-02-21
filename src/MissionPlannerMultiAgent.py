@@ -264,7 +264,7 @@ class MissionPlannerMultiAgent:
                     agents_position_now.extend(agent_position_this)
 
             else:
-                Exception("AgentFSM only supports 4 states: Unassigned, Assigned, Completed!")
+                Exception("AgentFSM only supports 4 states: Unassigned, Assigned, Completed, End!")
 
             # update new targets positions list
             if target_finish_flag_this:

@@ -148,7 +148,7 @@ $ python3 comparison/single_compare_CBBA_many_agents.py
 Experiments
 ===========
 
-1. Run a Mambo with Qualisys Motion Capture System and Offline Planner once.
+1. Run one Mambo with Qualisys Motion Capture System and Offline Planner once.
 
 * Create a directory for csv trajectories
 ```
@@ -174,39 +174,10 @@ $ python3 scripts_aimslab/run_mambo.py <mambo_id>
 $ cd <MAIN_DIRECTORY>
 $ python3 experiment/scripts/run_planner_once.py <mambo_id>
 # example: $ python3 experiment/scripts/run_planner_once.py 1
-# example: $ python3 experiment/scripts/run_planner_once.py 2
 ```
 
 
-2. Run a Mambo with Qualisys Motion Capture System and Online Planner.
-
-* Create a directory for csv trajectories
-```
-$ cd <Mambo-Tracking-Interface>/scripts_aimslab/
-$ mkdir traj_csv_files
-$ mkdir traj_csv_files/mambo_01
-$ chmod +x launch_mambo.sh
-```
-
-* Run Mocap Qualisys for {Online Planner, Mambo tracking controller}, and run Mambo tracking controller:
-```
-$ cd <Mambo-Tracking-Interface>
-$ ./scripts_aimslab/launch_mambo.sh <mambo_id> <run_mambo_flag>
-# example: $ ./scripts_aimslab/launch_mambo.sh 1 true
-# example: $ ./scripts_aimslab/launch_mambo.sh 2 true
-```
-
-* Run Online Planner:
-```
-$ cd <MAIN_DIRECTORY>
-$ python3 experiment/scripts/run_planner_online.py <mambo_id>
-# example: $ python3 experiment/scripts/run_planner_online.py
-# example: $ python3 experiment/scripts/run_planner_online.py 1
-# example: $ python3 experiment/scripts/run_planner_online.py 2
-```
-
-
-3. Run two Mambo with Qualisys Motion Capture System and Online Planner.
+2. Run two Mambo with Qualisys Motion Capture System and Online Planner.
 
 * Create a directory for csv trajectories
 ```
@@ -234,3 +205,32 @@ $ ./scripts_aimslab/launch_mambo.sh 2 true
 $ cd <MAIN_DIRECTORY>
 $ python3 experiment/scripts/run_planner_online_multi_agent.py
 ```
+
+
+<!-- 3. Run one Mambo with Qualisys Motion Capture System and Online Planner.
+
+**NOTE**: I revised `AgentFSMExp.py` to make the hardware experiment with multiple agents work. But I haven't revised the scripts about single agent case. I will do that later (Feb. 21, 2022). But any scripts related to multiple agents DO work.
+
+* Create a directory for csv trajectories
+```
+$ cd <Mambo-Tracking-Interface>/scripts_aimslab/
+$ mkdir traj_csv_files
+$ mkdir traj_csv_files/mambo_01
+$ chmod +x launch_mambo.sh
+```
+
+* Run Mocap Qualisys for {Online Planner, Mambo tracking controller}, and run Mambo tracking controller:
+```
+$ cd <Mambo-Tracking-Interface>
+$ ./scripts_aimslab/launch_mambo.sh <mambo_id> <run_mambo_flag>
+# example: $ ./scripts_aimslab/launch_mambo.sh 1 true
+```
+
+* Run Online Planner:
+```
+$ cd <MAIN_DIRECTORY>
+$ python3 experiment/scripts/run_planner_online.py <mambo_id>
+# example: $ python3 experiment/scripts/run_planner_online.py
+# example: $ python3 experiment/scripts/run_planner_online.py 1
+# example: $ python3 experiment/scripts/run_planner_online.py 2
+``` -->

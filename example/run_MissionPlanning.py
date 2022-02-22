@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # create a simulator
     MySimulator = Simulator(map_width_meter, map_height_meter, map_resolution, value_non_obs, value_obs)
     # number of obstacles
-    num_obs = 150
+    num_obs = 250
     # [width, length] size of each obstacle [meter]
     size_obs = [1, 1]
     # generate random obstacles
@@ -60,8 +60,8 @@ if __name__ == "__main__":
 
     # visualization
     MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_order,
-                           cluster_centers, points_idx_for_clusters, legend_flag=False,
-                           agent_text_flag=False, target_text_flag=False)
+                           cluster_centers, points_idx_for_clusters, legend_flag=True,
+                           agent_text_flag=True, target_text_flag=True)
     MySimulator.plot_cluster_assign(agent_position, targets_position, points_idx_for_clusters,
-                                    cluster_centers, cluster_assigned_idx, legend_flag=False)
+                                    cluster_centers, cluster_assigned_idx, legend_flag=True)
     plt.show()

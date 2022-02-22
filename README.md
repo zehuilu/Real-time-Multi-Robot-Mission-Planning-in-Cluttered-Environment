@@ -1,5 +1,7 @@
 # DrMaMP-Distributed-Real-time-Multi-agent-Mission-Planning-Algorithm
-This is DrMaMP: Distributed Real-time Multi-agent Mission Planning Algorithm in Cluttered Environment.
+This is DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment. The paper is shown below.
+
+NOT UPLOADED YET
 
 
 This repo has been tested with:
@@ -8,6 +10,15 @@ This repo has been tested with:
 * Clang 12.0.0, CMake 3.18.3, macOS 10.15.7
 * Clang 13.0.0, CMake 3.22.0, macOS 11.4
 
+
+An example with 8 agents and 40 tasks in a 50 * 50 grid map with 250 obstacles is shown below. The computational time is 59.96 ms.
+
+![Example](doc/example_after.png?raw=true "Example")
+
+
+This repo is used for hardware experiments. A video about real-time mission planning for two Parrot Mambo with static/dynamic obstacles and tasks is shown in [https://youtu.be/il3YxhXgGac](https://youtu.be/il3YxhXgGac).
+
+![Experiment](doc/experiment_screenshoot.jpeg?raw=true "Experiment")
 
 Dependencies
 ============

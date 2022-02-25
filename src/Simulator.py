@@ -185,9 +185,9 @@ class Simulator:
             print("Lazy Theta Star didn't find a path!")
 
     def plot_paths(self, path_many_agents: list, agents_position: list,
-                       targets_position: list, task_order: list,
-                       cluster_centers: list, points_idx_for_clusters: list,
-                       legend_flag=True, agent_text_flag=True, target_text_flag=True):
+                   targets_position: list, task_order: list,
+                   cluster_centers: list, points_idx_for_clusters: list,
+                   legend_flag=True, agent_text_flag=True, target_text_flag=True):
         """
         Plot many paths for multiple agents.
 
@@ -243,7 +243,7 @@ class Simulator:
         """
         # create a figure with legends
         realtime_flag = False
-        cluster_legend_flag = False
+        cluster_legend_flag = True
         path_legend_flag = False
         ax = self.create_realtime_plot(realtime_flag, cluster_legend_flag, path_legend_flag, legend_flag)
 
@@ -387,7 +387,7 @@ class Simulator:
                             "T"+str(idx_target), fontweight="bold", color="red")
 
     def plot_paths_figure(self, path_many_agents: list, agents_position: list,
-                                     targets_position: list, task_order: list, ax):
+                          targets_position: list, task_order: list, ax):
         """
         Plot path for multiple agents in an existing figure.
         """

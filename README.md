@@ -1,7 +1,7 @@
 # DrMaMP-Distributed-Real-time-Multi-agent-Mission-Planning-Algorithm
-This is DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment. The paper is shown below.
+This is DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment.
 
-NOT UPLOADED YET
+We have already submitted our paper "DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment" to IEEE Robotics and Automation Letters.
 
 
 This repo has been tested with:
@@ -29,6 +29,12 @@ Dependencies
   - [SciPy](https://www.scipy.org/)
 
 * [OR-Tools](https://developers.google.com/optimization)
+
+
+For experiments **ONLY**:
+
+This repo uses two Parrot Mambo quadrotors to do the experiments. To control these quadrotors based on results from DrMaMP, you need to download and install the following repository by the instructions.
+* [Mambo-Tracking-Interface](https://github.com/zehuilu/Mambo-Tracking-Interface)
 
 For comparisons **ONLY**:
 * [CBBA-Python](https://github.com/zehuilu/CBBA-Python.git)
@@ -158,6 +164,9 @@ $ python3 comparison/single_compare_CBBA_many_agents.py
 
 Experiments
 ===========
+
+First, you need to download [Mambo-Tracking-Interface](https://github.com/zehuilu/Mambo-Tracking-Interface) and follow the instructions to install.
+
 
 1. Run one Mambo with Qualisys Motion Capture System and Offline Planner once.
 

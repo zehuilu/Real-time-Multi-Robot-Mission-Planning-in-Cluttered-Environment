@@ -1,5 +1,7 @@
 # DrMaMP-Distributed-Real-time-Multi-agent-Mission-Planning-Algorithm
-This is DrMaMP: Distributed Real-time Multi-agent Mission Planning Algorithm in Cluttered Environment.
+This is DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment.
+
+We have already submitted our paper "DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment" to IEEE Robotics and Automation Letters.
 
 
 This repo has been tested with:
@@ -8,6 +10,15 @@ This repo has been tested with:
 * Clang 12.0.0, CMake 3.18.3, macOS 10.15.7
 * Clang 13.0.0, CMake 3.22.0, macOS 11.4
 
+
+An example with 8 agents and 40 tasks in a 50 * 50 grid map with 250 obstacles is shown below. The computational time is 59.96 ms.
+
+![Example](doc/example_after.png?raw=true "Example")
+
+
+This repo is used for hardware experiments. A video about real-time mission planning for two Parrot Mambo with static/dynamic obstacles and tasks is shown in [https://youtu.be/il3YxhXgGac](https://youtu.be/il3YxhXgGac).
+
+![Experiment](doc/experiment_screenshoot.jpeg?raw=true "Experiment")
 
 Dependencies
 ============
@@ -18,6 +29,12 @@ Dependencies
   - [SciPy](https://www.scipy.org/)
 
 * [OR-Tools](https://developers.google.com/optimization)
+
+
+For experiments **ONLY**:
+
+This repo uses two Parrot Mambo quadrotors to do the experiments. To control these quadrotors based on results from DrMaMP, you need to download and install the following repository by the instructions.
+* [Mambo-Tracking-Interface](https://github.com/zehuilu/Mambo-Tracking-Interface)
 
 For comparisons **ONLY**:
 * [CBBA-Python](https://github.com/zehuilu/CBBA-Python.git)
@@ -148,7 +165,10 @@ $ python3 comparison/single_compare_CBBA_many_agents.py
 Experiments
 ===========
 
-1. Run a Mambo with Qualisys Motion Capture System and Offline Planner once.
+First, you need to download [Mambo-Tracking-Interface](https://github.com/zehuilu/Mambo-Tracking-Interface) and follow the instructions to install.
+
+
+1. Run one Mambo with Qualisys Motion Capture System and Offline Planner once.
 
 * Create a directory for csv trajectories
 ```
@@ -174,39 +194,10 @@ $ python3 scripts_aimslab/run_mambo.py <mambo_id>
 $ cd <MAIN_DIRECTORY>
 $ python3 experiment/scripts/run_planner_once.py <mambo_id>
 # example: $ python3 experiment/scripts/run_planner_once.py 1
-# example: $ python3 experiment/scripts/run_planner_once.py 2
 ```
 
 
-2. Run a Mambo with Qualisys Motion Capture System and Online Planner.
-
-* Create a directory for csv trajectories
-```
-$ cd <Mambo-Tracking-Interface>/scripts_aimslab/
-$ mkdir traj_csv_files
-$ mkdir traj_csv_files/mambo_01
-$ chmod +x launch_mambo.sh
-```
-
-* Run Mocap Qualisys for {Online Planner, Mambo tracking controller}, and run Mambo tracking controller:
-```
-$ cd <Mambo-Tracking-Interface>
-$ ./scripts_aimslab/launch_mambo.sh <mambo_id> <run_mambo_flag>
-# example: $ ./scripts_aimslab/launch_mambo.sh 1 true
-# example: $ ./scripts_aimslab/launch_mambo.sh 2 true
-```
-
-* Run Online Planner:
-```
-$ cd <MAIN_DIRECTORY>
-$ python3 experiment/scripts/run_planner_online.py <mambo_id>
-# example: $ python3 experiment/scripts/run_planner_online.py
-# example: $ python3 experiment/scripts/run_planner_online.py 1
-# example: $ python3 experiment/scripts/run_planner_online.py 2
-```
-
-
-3. Run two Mambo with Qualisys Motion Capture System and Online Planner.
+2. Run two Mambo with Qualisys Motion Capture System and Online Planner.
 
 * Create a directory for csv trajectories
 ```
@@ -234,3 +225,32 @@ $ ./scripts_aimslab/launch_mambo.sh 2 true
 $ cd <MAIN_DIRECTORY>
 $ python3 experiment/scripts/run_planner_online_multi_agent.py
 ```
+
+
+<!-- 3. Run one Mambo with Qualisys Motion Capture System and Online Planner.
+
+**NOTE**: I revised `AgentFSMExp.py` to make the hardware experiment with multiple agents work. But I haven't revised the scripts about single agent case. I will do that later (Feb. 21, 2022). But any scripts related to multiple agents DO work.
+
+* Create a directory for csv trajectories
+```
+$ cd <Mambo-Tracking-Interface>/scripts_aimslab/
+$ mkdir traj_csv_files
+$ mkdir traj_csv_files/mambo_01
+$ chmod +x launch_mambo.sh
+```
+
+* Run Mocap Qualisys for {Online Planner, Mambo tracking controller}, and run Mambo tracking controller:
+```
+$ cd <Mambo-Tracking-Interface>
+$ ./scripts_aimslab/launch_mambo.sh <mambo_id> <run_mambo_flag>
+# example: $ ./scripts_aimslab/launch_mambo.sh 1 true
+```
+
+* Run Online Planner:
+```
+$ cd <MAIN_DIRECTORY>
+$ python3 experiment/scripts/run_planner_online.py <mambo_id>
+# example: $ python3 experiment/scripts/run_planner_online.py
+# example: $ python3 experiment/scripts/run_planner_online.py 1
+# example: $ python3 experiment/scripts/run_planner_online.py 2
+``` -->

@@ -6,6 +6,11 @@ with pathmagic.context():
     from PlannerMocap import PlannerMocap
 
 
+# NOTE: I revised `AgentFSMExp.py` to make the hardware experiment with multiple agents work.
+# But I haven't revised the scripts about single agent case. I will do that later (Feb. 21, 2022).
+# But any scripts related to multiple agents DO work.
+
+
 if __name__ == "__main__":
     # load mambo index from command line arguments
     if len(sys.argv) == 2:

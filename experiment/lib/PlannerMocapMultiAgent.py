@@ -21,7 +21,8 @@ with pathmagic.context(EXTERNAL_FLAG=True):
 # when distance between A and B < this number, we say A and B have same position
 DISTANCE_THRESHOLD = 0.25
 BUFFER_BOUNDARY = 0.10
-CASE_NUM = 7
+# 5 static, 6 dynamic obs, 7 dynamic task
+CASE_NUM = 5
 DYNAMIC_OBS_FLAG = False
 DYNAMIC_TASK_FLAG = False
 if CASE_NUM == 6:
@@ -85,7 +86,9 @@ class PlannerMocapMultiAgent:
 
         # remove all the existing files in the trajectory directory
         for idx in range(self.numAgent):
-            directoryDelete = os.path.expanduser("~") + "/Mambo-Tracking-Interface" + \
+            # directoryDelete = os.path.expanduser("~") + "/Mambo-Tracking-Interface" + \
+            #                   self.configDataList[idx]["DIRECTORY_TRAJ"] + "*"
+            directoryDelete = os.path.expanduser("~") + "/Mambo-Tracking-Interface-DrMaMP" + \
                               self.configDataList[idx]["DIRECTORY_TRAJ"] + "*"
             csv_helper.remove_traj_ref_lib(directoryDelete)
 
@@ -353,7 +356,9 @@ class PlannerMocapMultiAgent:
                         # output trajectories as a CSV file
                         array_csv = np.vstack((timeQueueVec, np.array(positionTraj).T, np.array(velocityTraj).T))
                         timeName = time.strftime("%Y%m%d%H%M%S")
-                        filename_csv = os.path.expanduser("~") + "/Mambo-Tracking-Interface" + \
+                        # filename_csv = os.path.expanduser("~") + "/Mambo-Tracking-Interface" + \
+                        #             self.configDataList[idxAgent]["DIRECTORY_TRAJ"] + timeName + ".csv"
+                        filename_csv = os.path.expanduser("~") + "/Mambo-Tracking-Interface-DrMaMP" + \
                                     self.configDataList[idxAgent]["DIRECTORY_TRAJ"] + timeName + ".csv"
                         np.savetxt(filename_csv, array_csv, delimiter=",")
                         positionTrajList.append(positionTraj)

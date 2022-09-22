@@ -51,8 +51,8 @@ class PlannerMocapMultiAgent:
 
         # load multiple agents' configuration as a list of dictionaries
         self.configDataList = list()
-        for idx in range(self.numAgent):
-            fileName = os.getcwd() + "/experiment/config_aimslab_ex_" + str(idx+1) + ".json"
+        for idx in [1, 3]:
+            fileName = os.getcwd() + "/experiment/config_aimslab_ex_" + str(idx) + ".json"
             self.configDataList.append(json.load(open(fileName)))
 
         self.mocapType = "QUALISYS"

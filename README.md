@@ -205,6 +205,7 @@ $ cd <Mambo-Tracking-Interface>/scripts_aimslab/
 $ mkdir traj_csv_files
 $ mkdir traj_csv_files/mambo_01
 $ mkdir traj_csv_files/mambo_02
+$ mkdir traj_csv_files/mambo_03
 $ chmod +x launch_mambo.sh
 ```
 
@@ -214,10 +215,10 @@ $ cd <Mambo-Tracking-Interface>
 $ ./scripts_aimslab/launch_mambo.sh 1 true
 ```
 
-* Run mambo_02 Mocap Qualisys for {Online Planner, Mambo tracking controller}, and run Mambo tracking controller:
+* Run mambo_03 Mocap Qualisys for {Online Planner, Mambo tracking controller}, and run Mambo tracking controller:
 ```
 $ cd <Mambo-Tracking-Interface>
-$ ./scripts_aimslab/launch_mambo.sh 2 true
+$ ./scripts_aimslab/launch_mambo.sh 3 true
 ```
 
 * Run Online Planner:

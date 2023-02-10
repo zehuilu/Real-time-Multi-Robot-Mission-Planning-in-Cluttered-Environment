@@ -25,7 +25,7 @@ inline void move_all_task_back(std::vector<int> &num_task_assign, const int &num
         agent_index--;
     }
 
-    if (agent_index == num_agent - 1) {
+    [[unlikely]] if (agent_index == num_agent - 1) {
         return;
     }
 
@@ -104,9 +104,11 @@ inline void permutation_order_task(
 }
 
 inline void swap(int task_index[], const int &a, const int &b) {
-    int temp = task_index[a];
-    task_index[a]= task_index[b];
-    task_index[b] = temp;
+    // int temp = task_index[a];
+    // task_index[a]= task_index[b];
+    // task_index[b] = temp;
+
+    std::swap(task_index[a], task_index[b]);
 }
 
 inline void get_tree(std::vector<int> &tree, int task_index[], const int &start_idx, const int &end_idx, const int &num_task) {
@@ -129,16 +131,16 @@ inline float permutation_num_task(
     const int &num_task, 
     int agent_position[], 
     int targets_position[], 
-    std::vector<int> &map, 
-    int &mapSizeX, 
-    int &mapSizeY, 
+    const std::vector<int> &map, 
+    const int &mapSizeX, 
+    const int &mapSizeY, 
     int solution[]) 
 {
     int len_tree = 1;
     for(int i = 1; i <= num_task; ++i) {
         len_tree *= i;
     }
-    
+
     // int C_task = 1;
     // int C_agent = 1;
     // int C_diff = 1;
@@ -151,7 +153,7 @@ inline float permutation_num_task(
     // for(int i = 1; i <= num_task - num_agent; ++i) {
         // C_diff *= i;
     // }
-    
+
     // int expect_case = factorial*C_task/C_agent/C_diff;
     float cost_now = 1E8;
     int agent_index = 0;
@@ -190,7 +192,7 @@ inline float permutation_num_task(
 
     std::vector<int> solution_vec(num_agent*num_task, -1);
 
-    int percent = 0;
+    // int percent = 0;
     while (true) {
         // move one task to tail
         while (agent_index != num_agent - 1) {
@@ -203,7 +205,7 @@ inline float permutation_num_task(
         permutation_order_task(tree, num_agent, num_task, agent_position_vec, targets_position_vec, map, mapSizeX, mapSizeY, num_task_assign, solution_vec, cost_now);
         total_case_assign_num_task++;
         // stop consition
-        if (num_task_assign[num_agent - 1] == num_task - num_agent + 1) {
+        [[unlikely]] if (num_task_assign[num_agent - 1] == num_task - num_agent + 1) {
             break;
         }
         // move agent pointer back

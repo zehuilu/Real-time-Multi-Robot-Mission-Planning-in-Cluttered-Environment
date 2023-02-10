@@ -4,8 +4,8 @@
 #include <iostream>
 #include <tuple>
 #include <chrono>
-#include "../../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/find_path.hpp"
-#include "../../include/optimal_search.hpp"
+#include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/find_path.hpp"
+#include "../include/optimal_search.hpp"
 
 int main() {
     using namespace std::chrono;

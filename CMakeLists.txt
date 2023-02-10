@@ -71,7 +71,7 @@ pybind11_add_module(K_MEANS src/K_MEANS.cpp)
 target_link_libraries(K_MEANS PRIVATE pthread)
 
 # add test file for Optimal Search
-add_executable(test_optimal_search test/test_optimal_search.cpp ${HEADER_FILES_HPP})
+add_executable(test_optimal_search test/test_optimal.cpp ${HEADER_FILES_HPP})
 
 # Build C++ library for Python, Optimal Search
 pybind11_add_module(OptimalSearch src/OptimalSearch.cpp)

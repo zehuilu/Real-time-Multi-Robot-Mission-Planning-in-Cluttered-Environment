@@ -24,7 +24,7 @@ inline std::tuple< std::vector<std::vector<int>>, float > OptimalSearch(
     int* targets_position_array = targets_position.data();
 
     std::vector<int> start_case_vec(num_agent * num_task, -1);
-    int *solution = start_case_vec.data(); 
+    int solution[num_agent * num_task] = {-1};
 
     float cost = permutation_num_task(num_agent, num_task, agent_position_array, targets_position_array, Map, mapSizeX, mapSizeY, solution);
 

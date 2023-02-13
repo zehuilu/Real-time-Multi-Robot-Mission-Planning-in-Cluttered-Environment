@@ -44,9 +44,10 @@ if __name__ == "__main__":
     t1 = time.time()
     print("Time used [sec]:" + str(t1 - t0))
 
-    distance, distance_list = compute_path_distance_many_agents(path_all_agents)
+    distance, distance_list, infeasible_flag = compute_path_distance_many_agents(path_all_agents)
     print("Total distance: ", distance)
 
+    print("If there exists at least one infeasible path: ", infeasible_flag)
     print("path_all_agents")
     print(path_all_agents)
     print("task_order")

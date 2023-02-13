@@ -42,8 +42,9 @@ if __name__ == "__main__":
     path_many_result, task_allocation_result = DrMaMP.SolveOneAgent(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
     t1 = time.time()
     print("My algorithm time used [sec]:" + str(t1 - t0))
-    distance_my = compute_path_distance_one_agent(path_many_result)
+    distance_my, infeasible_flag_my = compute_path_distance_one_agent(path_many_result)
     print("my distance", distance_my)
+    print("If there exists an infeasible path: ", infeasible_flag_my)
     # visualization
     MySimulator.plot_paths([path_many_result], agent_position, targets_position, [task_allocation_result], [], [])
     print("my task_allocation_result")
@@ -56,8 +57,9 @@ if __name__ == "__main__":
         CBBA_Path_Finding.Solve(agent_position, targets_position, MySimulator, cbba_config_file_name, plot_flag=False)
     t1 = time.time()
     print("CBBA + path finding time used [sec]:" + str(t1 - t0))
-    distance_cbba = compute_path_distance_one_agent(path_all_agents[0])
+    distance_cbba, infeasible_flag_cbba = compute_path_distance_one_agent(path_all_agents[0])
     print("CBBA distance", distance_cbba)
+    print("If there exists an infeasible path: ", infeasible_flag_my)
     # plot
     MySimulator.plot_paths(path_all_agents, agent_position, targets_position, task_allocation_list, [], [])
     print("CBBA task_allocation_list")

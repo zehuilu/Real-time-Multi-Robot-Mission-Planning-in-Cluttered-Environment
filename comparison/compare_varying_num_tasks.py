@@ -66,7 +66,7 @@ if __name__ == "__main__":
             t1 = time.time()
             time_used_my = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_my.append(time_used_my)
-            this_distance_my, _ = compute_path_distance_many_agents(path_all_agents_my)
+            this_distance_my, _, infeasible_flag_my = compute_path_distance_many_agents(path_all_agents_my)
             distance_list_single_case_my.append(this_distance_my)
 
             # CBBA
@@ -77,7 +77,7 @@ if __name__ == "__main__":
             t1 = time.time()
             time_used_cbba = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_cbba.append(time_used_cbba)
-            this_distance_cbba, _ = compute_path_distance_many_agents(path_all_agents_cbba)
+            this_distance_cbba, _, infeasible_flag_cbba = compute_path_distance_many_agents(path_all_agents_cbba)
             distance_list_single_case_cbba.append(this_distance_cbba)
 
         time_used_list_all_cases_my.append(time_used_list_single_case_my)

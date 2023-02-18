@@ -69,7 +69,7 @@ inline void permutation_order_task(
                 }
                 else if (path.size() < 2) {
                     // if no feasible, set as a large number, but not the maximum of int64_t
-                    new_cost = std::numeric_limits<int>::max() / num_task / num_agent / num_task;
+                    new_cost = std::numeric_limits<int>::max() / num_task / num_agent;
                 }
                 else {
                     feasible_path++;

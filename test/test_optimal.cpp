@@ -10,17 +10,9 @@
 int main() {
     using namespace std::chrono;
     auto start = high_resolution_clock::now();
-    int agent[] = {1,1, 1,2, 1,3};
-    int targets[] = {2,1, 2,3, 1,4, 7,7, 8,1, 9,1};
 
-    std::vector<int> agent_position;
-    for (int i = 0; i < sizeof(agent)/sizeof(agent[0]); i++) {
-        agent_position.push_back(agent[i]);
-    }
-    std::vector<int> targets_position;
-    for (int i = 0; i < sizeof(targets)/sizeof(targets[0]); i++) {
-        targets_position.push_back(targets[i]);
-    }
+    std::vector<int> agent_position = {1,1, 1,2, 1,3};
+    std::vector<int> targets_position = {2,1, 2,3, 1,4, 7,7, 8,1, 9,1};
 
     std::vector<int> map;
     int mapSizeX = 10;
@@ -39,9 +31,9 @@ int main() {
     std::cout << "Minimum cost = " << cost << "\n";
     std::cout << "Index of agent and task starts from 0 \n";
     std::cout << "Path \n";
-    for (int i = 0; i < path.size(); i++) {
+    for (size_t i = 0; i < path.size(); i++) {
         std::cout << "Agent " << i << ":";
-        for (int j = 0; j < path[i].size(); j++) {
+        for (size_t j = 0; j < path[i].size(); j++) {
             std::cout << " -> " << path[i][j];
         }
         std::cout << "\n";

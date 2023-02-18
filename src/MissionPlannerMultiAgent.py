@@ -113,7 +113,7 @@ class MissionPlannerMultiAgent:
                                                   [], cluster_centers, [], ax, plot_cluster_flag=True)
 
             # plot the algorithm time
-            time_str = "Computing Time [ms]: " + str(time_algorithm_ms)
+            time_str = "Computation Time [ms]: " + str(time_algorithm_ms)
             plt.text(0.25, 0.9, time_str, fontsize=14, transform=plt.gcf().transFigure)
 
             plt.pause(1E-6)

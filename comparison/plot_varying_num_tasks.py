@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import matplotlib.pyplot as plt
 import numpy as np
-
+import pathmagic
+with pathmagic.context():
+    import filter_comparison as helper
 
 if __name__ == "__main__":
     plot_cbba_flag = True
@@ -12,20 +14,31 @@ if __name__ == "__main__":
 
     num_agents = int(np.genfromtxt(
         prefix+"num_agents.csv", delimiter=","))
-    time_used_list_all_cases_cbba = np.genfromtxt(
+    _time_used_list_all_cases_cbba = np.genfromtxt(
         prefix+"algo_time_list_cbba.csv", delimiter=",")
-    time_used_list_all_cases_my = np.genfromtxt(
+    _time_used_list_all_cases_my = np.genfromtxt(
         prefix+"algo_time_part1_list_my.csv", delimiter=",")
-    distance_list_all_cases_cbba = np.genfromtxt(
+    _distance_list_all_cases_cbba = np.genfromtxt(
         prefix+"distance_list_all_cases_cbba.csv", delimiter=",")
-    distance_list_all_cases_my = np.genfromtxt(
+    _distance_list_all_cases_my = np.genfromtxt(
         prefix+"distance_list_all_cases_my.csv", delimiter=",")
+    _infeasible_list_all_cases_my = np.genfromtxt(
+        prefix+"infeasible_list_all_cases_my.csv", delimiter=",")
+    _infeasible_list_all_cases_cbba = np.genfromtxt(
+        prefix+"infeasible_list_all_cases_cbba.csv", delimiter=",")
     xticks_str_list = np.genfromtxt(
         prefix+"xticks_str_list.csv", delimiter=",", dtype="int")
     xticks_str_list.astype('str')
 
     # xticks of plots
-    xticks_list = range(1, len(time_used_list_all_cases_my)+1)
+    xticks_list = range(1, len(_time_used_list_all_cases_my)+1)
+
+    # filter the data
+    infeasible_list_all_cases = helper.find_infeasible_all(_infeasible_list_all_cases_my, _infeasible_list_all_cases_cbba)
+    time_used_list_all_cases_cbba, distance_list_all_cases_cbba = \
+        helper.find_other_lists(_time_used_list_all_cases_cbba, _distance_list_all_cases_cbba, infeasible_list_all_cases)
+    time_used_list_all_cases_my, distance_list_all_cases_my = \
+        helper.find_other_lists(_time_used_list_all_cases_my, _distance_list_all_cases_my, infeasible_list_all_cases)
 
     mean_time_my = list()
     std_time_my = list()
@@ -51,14 +64,14 @@ if __name__ == "__main__":
     if plot_cbba_flag:
         # create box plot for both algorithm
         fig1, ax1 = plt.subplots()
-        ax1.set_title('Computing time, num_agents = ' + str(num_agents))
+        ax1.set_title('Computation time, num_agents = ' + str(num_agents))
         # create plot
         x_pos = np.array(range(len(time_used_list_all_cases_my)))*2.0-0.2
         ax1.bar(x_pos, mean_time_my, yerr=std_time_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
         x_pos = np.array(range(len(time_used_list_all_cases_cbba)))*2.0+0.2
         ax1.bar(x_pos, mean_time_cbba, yerr=std_time_cbba, color='red', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
         ax1.set_xlabel('Number of tasks')
-        ax1.set_ylabel('Computing time [ms]')
+        ax1.set_ylabel('Computation time [ms]')
         ax1.yaxis.grid(True)
         plt.xticks(range(0, len(xticks_str_list)*2, 2), xticks_str_list)
         # set legends
@@ -91,11 +104,11 @@ if __name__ == "__main__":
 
     # create box plot for my algorithm
     fig3, ax3 = plt.subplots()
-    ax3.set_title('Computing time for proposed, num_agents = ' + str(num_agents))
+    ax3.set_title('Computation time for proposed, num_agents = ' + str(num_agents))
     # create plot
     ax3.bar(xticks_list, mean_time_my, yerr=std_time_my, color='blue', width=0.4, align='center', alpha=0.5, ecolor='black', capsize=5)
     ax3.set_xlabel('Number of tasks')
-    ax3.set_ylabel('Computing time [ms]')
+    ax3.set_ylabel('Computation time [ms]')
     ax3.yaxis.grid(True)
     plt.xticks(xticks_list, xticks_str_list)
     # set legends

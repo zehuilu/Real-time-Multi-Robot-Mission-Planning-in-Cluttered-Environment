@@ -35,18 +35,22 @@ if __name__ == "__main__":
     num_tasks_per_agent = 3
 
     max_num_agents = 21
-    num_run = 50
+    num_run = 100
 
     time_used_list_all_cases_my = []
     time_used_list_all_cases_cbba = []
     distance_list_all_cases_my = []
     distance_list_all_cases_cbba = []
+    infeasible_list_all_cases_my = []
+    infeasible_list_all_cases_cbba = []
     xticks_str_list = []
     for num_agents in range (2, max_num_agents+1, 3):
         time_used_list_single_case_my = []
         time_used_list_single_case_cbba = []
         distance_list_single_case_my = []
         distance_list_single_case_cbba = []
+        infeasible_list_single_case_my = []
+        infeasible_list_single_case_cbba = []
 
         # parameters for my algorithm
         num_cluster = num_agents
@@ -68,6 +72,7 @@ if __name__ == "__main__":
             time_used_list_single_case_my.append(time_used_my)
             this_distance_my, _, infeasible_flag_my = compute_path_distance_many_agents(path_all_agents_my)
             distance_list_single_case_my.append(this_distance_my)
+            infeasible_list_single_case_my.append(infeasible_flag_my)
 
             # CBBA
             t0 = time.time()
@@ -79,11 +84,14 @@ if __name__ == "__main__":
             time_used_list_single_case_cbba.append(time_used_cbba)
             this_distance_cbba, _, infeasible_flag_cbba = compute_path_distance_many_agents(path_all_agents_cbba)
             distance_list_single_case_cbba.append(this_distance_cbba)
+            infeasible_list_single_case_cbba.append(infeasible_flag_cbba)
 
         time_used_list_all_cases_my.append(time_used_list_single_case_my)
         time_used_list_all_cases_cbba.append(time_used_list_single_case_cbba)
         distance_list_all_cases_my.append(distance_list_single_case_my)
         distance_list_all_cases_cbba.append(distance_list_single_case_cbba)
+        infeasible_list_all_cases_my.append(infeasible_list_single_case_my)
+        infeasible_list_all_cases_cbba.append(infeasible_list_single_case_cbba)
         xticks_str_list.append(str(num_agents))
         print(num_agents)
 
@@ -94,6 +102,8 @@ if __name__ == "__main__":
     np.savetxt(prefix+"algo_time_part1_list_my.csv", time_used_list_all_cases_my, delimiter=",")
     np.savetxt(prefix+"distance_list_all_cases_cbba.csv", distance_list_all_cases_cbba, delimiter=",")
     np.savetxt(prefix+"distance_list_all_cases_my.csv", distance_list_all_cases_my, delimiter=",")
+    np.savetxt(prefix+"infeasible_list_all_cases_my.csv", infeasible_list_all_cases_my, delimiter=",")
+    np.savetxt(prefix+"infeasible_list_all_cases_cbba.csv", infeasible_list_all_cases_cbba, delimiter=",")
     np.savetxt(prefix+"xticks_str_list.csv", xticks_str_list, delimiter =",", fmt ='% s')
 
     print("Completed!")

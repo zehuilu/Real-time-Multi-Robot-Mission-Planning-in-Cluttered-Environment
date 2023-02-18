@@ -10,35 +10,31 @@
 /*
 Main function for Optimal Search.
 */
-inline std::tuple< std::vector<std::vector<int>>, float > OptimalSearch(
+inline std::tuple< std::vector<std::vector<int>>, float, bool> OptimalSearch(
     std::vector<int>& agent_position,
     std::vector<int>& targets_position,
     const std::vector<int> &Map,
     const int &mapSizeX,
     const int &mapSizeY)
 {
-    const int num_agent = static_cast<int>(agent_position.size() / 2);
-    const int num_task = static_cast<int>(targets_position.size() / 2);
+    std::tuple<std::vector<std::vector<int>>, float, bool> result = run_optimal_search(agent_position, targets_position, Map, mapSizeX, mapSizeY);
 
-    int* agent_position_array = agent_position.data();
-    int* targets_position_array = targets_position.data();
+    std::vector<std::vector<int>> allocation_result = std::get<0>(result);
+    float cost = std::get<1>(result);
+    bool infeasible = std::get<2>(result);
+    // std::cout << "Minimum cost = " << cost << "\n";
+    // std::cout << "Index of agent and task starts from 0 \n";
+    // std::cout << "Path \n";
+    // for (int i = 0; i < allocation_result.size(); i++) {
+    //     std::cout << "Agent " << i << ":";
+    //     for (int j = 0; j < allocation_result[i].size(); j++) {
+    //         std::cout << " -> " << allocation_result[i][j];
+    //     }
+    //     std::cout << "\n";
+    // }
+    // std::cout << "Infeasible = " << infeasible << "\n";
 
-    std::vector<int> start_case_vec(num_agent * num_task, -1);
-    int solution[num_agent * num_task] = {-1};
-
-    float cost = permutation_num_task(num_agent, num_task, agent_position_array, targets_position_array, Map, mapSizeX, mapSizeY, solution);
-
-    // each sub-vector is the indices of the assigned tasks, where the order is the execution order
-    std::vector<std::vector<int>> allocation_result;
-    for (int i = 0; i < num_agent; i++) {
-        std::vector<int> result_this;
-        for (int j = 0; j < num_task; j++) {
-            if (solution[i*num_task+j]-1 >= 0) result_this.push_back(solution[i*num_task+j]-1);
-        }
-        allocation_result.push_back(result_this);
-    }
-
-    return {allocation_result, cost};
+    return {allocation_result, cost, infeasible};
 }
 
 

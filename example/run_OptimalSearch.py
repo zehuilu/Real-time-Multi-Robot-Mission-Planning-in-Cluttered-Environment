@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     t0 = time.time()
     # solve it
-    solution, optimal_cost = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
+    solution, optimal_cost, infeasible = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
     t1 = time.time()
     print("Optimal Search Time used [sec]:" + str(t1 - t0))
 
@@ -40,6 +40,8 @@ if __name__ == "__main__":
     print(solution)
     print("optimal_cost")
     print(optimal_cost)
+    print("Infeasible")
+    print(infeasible)
 
     # visualization
     MySimulator.plot_paths([], agent_position, targets_position, [], [], [])

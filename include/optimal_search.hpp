@@ -6,6 +6,7 @@
 #include "../externals/Lazy-Theta-with-optimization-any-angle-pathfinding/include/find_path.hpp"
 
 int tree_height = 0;
+int feasible_path = 0;
 
 inline void print_task_number(std::vector<int> &num_task_assign, const int &num_agent) {
     for (int i = 0; i < num_agent; i++) {
@@ -70,6 +71,9 @@ inline void permutation_order_task(
                     // if no feasible, set as a large number, but not the maximum of int64_t
                     new_cost = std::numeric_limits<int>::max() / num_task / num_agent;
                 }
+                else {
+                    feasible_path++;
+                }
                 cost_total += new_cost;
                 
                 current_position[0] = next_position[0];
@@ -99,8 +103,7 @@ inline void permutation_order_task(
             }
 
         }
-    }
-    
+    } 
 }
 
 inline void swap(int task_index[], const int &a, const int &b) {
@@ -116,7 +119,6 @@ inline void get_tree(std::vector<int> &tree, int task_index[], const int &start_
         for (int i = 0; i < num_task; i++) {
             tree.push_back(task_index[i]);
         }
-        tree_height++;
     } else {
         for (int i = start_idx; i <= end_idx; i++) {
             swap(task_index, start_idx, i);
@@ -126,19 +128,22 @@ inline void get_tree(std::vector<int> &tree, int task_index[], const int &start_
     }
 }
 
-inline float permutation_num_task(
-    const int &num_agent, 
-    const int &num_task, 
-    int agent_position[], 
-    int targets_position[], 
+inline std::tuple<std::vector<std::vector<int>>, float, bool> run_optimal_search(
+    std::vector<int>& agent_position,
+    std::vector<int>& targets_position,
     const std::vector<int> &map, 
     const int &mapSizeX, 
-    const int &mapSizeY, 
-    int solution[]) 
+    const int &mapSizeY) 
 {
-    int len_tree = 1;
+    // permutation_num_task
+    const int num_agent = static_cast<int>(agent_position.size() / 2);
+    const int num_task = static_cast<int>(targets_position.size() / 2);
+    int solution[num_agent * num_task] = {-1};
+    bool infeasible = true;
+
+    tree_height = 1;
     for(int i = 1; i <= num_task; ++i) {
-        len_tree *= i;
+        tree_height *= i;
     }
 
     // int C_task = 1;
@@ -168,18 +173,6 @@ inline float permutation_num_task(
     }
 
     int total_case_assign_num_task = 0;
-
-    std::vector<int> agent_position_vec;
-    for (int i = 0; i < num_agent; i++) {
-        agent_position_vec.push_back(agent_position[2*i]);
-        agent_position_vec.push_back(agent_position[2*i+1]);
-    }
-
-    std::vector<int> targets_position_vec;
-    for (int i = 0; i < num_task; i++) {
-        targets_position_vec.push_back(targets_position[2*i]);
-        targets_position_vec.push_back(targets_position[2*i+1]);
-    }
     
     std::vector<int> task_index_vec(num_task);
     for (int i = 0; i < num_task; i++) {
@@ -196,13 +189,13 @@ inline float permutation_num_task(
     while (true) {
         // move one task to tail
         while (agent_index != num_agent - 1) {
-            permutation_order_task(tree, num_agent, num_task, agent_position_vec, targets_position_vec, map, mapSizeX, mapSizeY, num_task_assign, solution_vec, cost_now);
+            permutation_order_task(tree, num_agent, num_task, agent_position, targets_position, map, mapSizeX, mapSizeY, num_task_assign, solution_vec, cost_now);
             total_case_assign_num_task++;
             move_one_task_to_next_agent(num_task_assign, agent_index);
             agent_index++;
         }
         // for last one
-        permutation_order_task(tree, num_agent, num_task, agent_position_vec, targets_position_vec, map, mapSizeX, mapSizeY, num_task_assign, solution_vec, cost_now);
+        permutation_order_task(tree, num_agent, num_task, agent_position, targets_position, map, mapSizeX, mapSizeY, num_task_assign, solution_vec, cost_now);
         total_case_assign_num_task++;
         // stop consition
         [[unlikely]] if (num_task_assign[num_agent - 1] == num_task - num_agent + 1) {
@@ -222,6 +215,20 @@ inline float permutation_num_task(
     for (int i = 0; i < num_agent*num_task; i++) {
         solution[i] = solution_vec[i];
     }
-    return cost_now;
+
+    std::vector<std::vector<int>> allocation_result;
+    for (int i = 0; i < num_agent; i++) {
+        std::vector<int> result_this;
+        for (int j = 0; j < num_task; j++) {
+            if (solution[i*num_task+j]-1 >= 0) result_this.push_back(solution[i*num_task+j]-1);
+        }
+        allocation_result.push_back(result_this);
+    }
+
+    if (feasible_path != 0) {
+        infeasible = false;
+    }
+
+    return {allocation_result, cost_now, infeasible};
     
 }

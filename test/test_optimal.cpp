@@ -10,30 +10,43 @@
 int main() {
     using namespace std::chrono;
     auto start = high_resolution_clock::now();
-    int agent_position[] = {1,1, 1,2, 1,3};
-    int targets_position[] = {2,1, 2,3, 1,4, 7,7, 8,1, 9,1};
-    const int num_agent = sizeof(agent_position)/sizeof(agent_position[0]) / 2;
-    const int num_task = sizeof(targets_position)/sizeof(targets_position[0]) / 2;
+    int agent[] = {1,1, 1,2, 1,3};
+    int targets[] = {2,1, 2,3, 1,4, 7,7, 8,1, 9,1};
+
+    std::vector<int> agent_position;
+    for (int i = 0; i < sizeof(agent)/sizeof(agent[0]); i++) {
+        agent_position.push_back(agent[i]);
+    }
+    std::vector<int> targets_position;
+    for (int i = 0; i < sizeof(targets)/sizeof(targets[0]); i++) {
+        targets_position.push_back(targets[i]);
+    }
+
     std::vector<int> map;
     int mapSizeX = 10;
     int mapSizeY = 10;
     for (int i = 0; i < mapSizeX * mapSizeY; i++) {
         map.push_back(0);
     }
+    map[11] = 1;
 
-    int solution[num_agent * num_task] = {-1};
-    float cost = permutation_num_task(num_agent, num_task, agent_position, targets_position, map, mapSizeX, mapSizeY, solution);
+    // path, cost, feasible
+    std::tuple<std::vector<std::vector<int>>, float, bool> result = run_optimal_search(agent_position, targets_position, map, mapSizeX, mapSizeY);
   
+    std::vector<std::vector<int>> path = std::get<0>(result);
+    float cost = std::get<1>(result);
+    bool infeasible = std::get<2>(result);
     std::cout << "Minimum cost = " << cost << "\n";
     std::cout << "Index of agent and task starts from 0 \n";
     std::cout << "Path \n";
-    for (int i = 0; i < num_agent; i++) {
+    for (int i = 0; i < path.size(); i++) {
         std::cout << "Agent " << i << ":";
-        for (int j = 0; j < num_task; j++) {
-            if (solution[i*num_task+j]-1 >= 0) std::cout << " -> " << solution[i*num_task+j] - 1;  
+        for (int j = 0; j < path[i].size(); j++) {
+            std::cout << " -> " << path[i][j];
         }
         std::cout << "\n";
     }
+    std::cout << "Infeasible = " << infeasible << "\n";
 
     auto stop = high_resolution_clock::now();
     auto run_time = duration_cast<milliseconds>(stop - start);

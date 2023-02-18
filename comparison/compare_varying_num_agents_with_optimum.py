@@ -62,6 +62,7 @@ if __name__ == "__main__":
             # generate agents and targets randomly
             agent_position, targets_position = MySimulator.generate_agents_and_targets(
                 num_agents, num_agents * num_tasks_per_agent)
+            # print(targets_position)
 
             # my algorithm
             t0 = time.time()
@@ -75,6 +76,7 @@ if __name__ == "__main__":
             this_distance_my, distance_list_my, infeasible_flag_my = compute_path_distance_many_agents(path_all_agents_my)
 
             distance_list_single_case_my.append(this_distance_my)
+            # print(path_all_agents_my)
 
             # CBBA
             t0 = time.time()
@@ -89,7 +91,7 @@ if __name__ == "__main__":
 
             # optimal search
             t0 = time.time()
-            _, optimal_cost = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
+            _, optimal_cost, infeasible = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
             t1 = time.time()
             time_used_os = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_os.append(time_used_os)
@@ -102,7 +104,7 @@ if __name__ == "__main__":
         distance_list_all_cases_cbba.append(distance_list_single_case_cbba)
         distance_list_all_cases_os.append(distance_list_single_case_os)
         xticks_str_list.append(str(num_agents))
-        print(num_agents)
+        # print(num_agents)
 
     xticks_list = range(1, len(time_used_list_all_cases_my)+1)
 

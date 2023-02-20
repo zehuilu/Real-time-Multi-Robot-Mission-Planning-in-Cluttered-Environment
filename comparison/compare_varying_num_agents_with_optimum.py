@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import time
+import copy
 import pathmagic
 import numpy as np
 with pathmagic.context():
@@ -21,23 +22,16 @@ if __name__ == "__main__":
     map_resolution = 2
     value_non_obs = 0  # the cell is empty
     value_obs = 255  # the cell is blocked
-    # create a simulator
-    MySimulator = Simulator(map_width_meter, map_height_meter, map_resolution, value_non_obs, value_obs)
     # number of obstacles
-    num_obs = 100
+    num_obs = 200
     # [width, length] size of each obstacle [meter]
-    size_obs = [1, 1]
-    # generate random obstacles
-    MySimulator.generate_random_obs(num_obs, size_obs)
-    # convert 2D numpy array to 1D list
-    world_map = MySimulator.map_array.flatten().tolist()
+    size_obs = [1 / map_resolution, 1 / map_resolution]
 
     # fix the average number of targets per agent
     num_tasks_per_agent = 2
     max_num_agents = 3
 
-    # num_run = 10
-    num_run = 5
+    num_run = 10
 
     time_used_list_all_cases_my = []
     time_used_list_all_cases_cbba = []
@@ -65,17 +59,29 @@ if __name__ == "__main__":
         number_of_iterations = 300
 
         for idx_run in range(num_run):
+            # create a simulator
+            MySimulator = Simulator(map_width_meter, map_height_meter, map_resolution, value_non_obs, value_obs)
+            # generate random obstacles
+            MySimulator.generate_random_obs(num_obs, size_obs)
+            # convert 2D numpy array to 1D list
+            world_map = MySimulator.map_array.flatten().tolist()
+
             # generate agents and targets randomly
             agent_position, targets_position = MySimulator.generate_agents_and_targets(
                 num_agents, num_agents * num_tasks_per_agent)
             # print(targets_position)
 
+
             # my algorithm
+            MySimulator_1 = copy.deepcopy(MySimulator)
+            world_map_1 = copy.deepcopy(world_map)
+            agent_position_1 = copy.deepcopy(agent_position)
+            targets_position_1 = copy.deepcopy(targets_position)
             t0 = time.time()
             path_all_agents_my, _, _, _, _ =\
-                DrMaMP.MissionPlanning(agent_position, targets_position, num_cluster,
-                                       number_of_iterations, world_map,
-                                       MySimulator.map_width, MySimulator.map_height)
+                DrMaMP.MissionPlanning(agent_position_1, targets_position_1, num_cluster,
+                                       number_of_iterations, world_map_1,
+                                       MySimulator_1.map_width, MySimulator_1.map_height)
             t1 = time.time()
             time_used_my = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_my.append(time_used_my)
@@ -83,11 +89,19 @@ if __name__ == "__main__":
             distance_list_single_case_my.append(this_distance_my)
             infeasible_list_single_case_my.append(infeasible_flag_my)
             # print(path_all_agents_my)
+            del MySimulator_1
+            del world_map_1
+            del agent_position_1
+            del targets_position_1
+
 
             # CBBA
+            MySimulator_2 = copy.deepcopy(MySimulator)
+            agent_position_2 = copy.deepcopy(agent_position)
+            targets_position_2 = copy.deepcopy(targets_position)
             t0 = time.time()
             _, _, path_all_agents_cbba, _, _, _ =\
-            CBBA_Path_Finding.Solve(agent_position, targets_position, MySimulator,
+            CBBA_Path_Finding.Solve(agent_position_2, targets_position_2, MySimulator_2,
                                     cbba_config_file_name, plot_flag=False)
             t1 = time.time()
             time_used_cbba = (t1 - t0) * 1000.0  # in millisecond
@@ -95,15 +109,34 @@ if __name__ == "__main__":
             this_distance_cbba, distance_list_cbba, infeasible_flag_cbba = compute_path_distance_many_agents(path_all_agents_cbba)
             distance_list_single_case_cbba.append(this_distance_cbba)
             infeasible_list_single_case_cbba.append(infeasible_flag_cbba)
+            del MySimulator_2
+            del agent_position_2
+            del targets_position_2
+
 
             # optimal search
+            MySimulator_3 = copy.deepcopy(MySimulator)
+            world_map_3 = copy.deepcopy(world_map)
+            agent_position_3 = copy.deepcopy(agent_position)
+            targets_position_3 = copy.deepcopy(targets_position)
             t0 = time.time()
-            _, optimal_cost, infeasible_flag_os = OptimalSearch.OptimalSearch(agent_position, targets_position, world_map, MySimulator.map_width, MySimulator.map_height)
+            _, optimal_cost, infeasible_flag_os = OptimalSearch.OptimalSearch(\
+                agent_position_3, targets_position_3, world_map_3,
+                MySimulator_3.map_width, MySimulator_3.map_height)
             t1 = time.time()
             time_used_os = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_os.append(time_used_os)
             distance_list_single_case_os.append(optimal_cost)
             infeasible_list_single_case_os.append(infeasible_flag_os)
+            del MySimulator_3
+            del world_map_3
+            del agent_position_3
+            del targets_position_3
+
+            del MySimulator
+            del world_map
+            del agent_position
+            del targets_position
 
         time_used_list_all_cases_my.append(time_used_list_single_case_my)
         time_used_list_all_cases_cbba.append(time_used_list_single_case_cbba)

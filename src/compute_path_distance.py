@@ -12,8 +12,12 @@ def compute_path_distance_one_agent(path_list_2d: list):
     for i in range(len(path_list_2d)):
         if len(path_list_2d[i]) > 0:
             for j in range(0, len(path_list_2d[i])-2, 2):
-                distance = distance + math.sqrt((path_list_2d[i][j]-path_list_2d[i][j+2])**2 +\
-                           (path_list_2d[i][j+1]-path_list_2d[i][j+3])**2)
+                if path_list_2d[i][j] >= 0:
+                    distance = distance + math.sqrt((path_list_2d[i][j]-path_list_2d[i][j+2])**2 +\
+                        (path_list_2d[i][j+1]-path_list_2d[i][j+3])**2)
+                else:
+                    print("The path is infeasible if is empty.")
+                    infeasible_flag = True
         else:
             print("The path is infeasible if is empty.")
             infeasible_flag = True

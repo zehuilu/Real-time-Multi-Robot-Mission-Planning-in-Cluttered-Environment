@@ -560,7 +560,7 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > SolveOne
         }
 
         path_many.push_back(path);
-        
+
         // Regenerate the neighbors for next run
         // if (idx < start_goal_pair.size()-1)
         pathfinder.generateNodes();
@@ -690,7 +690,8 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > mission_
     std::vector<std::vector<int>> path_many_each_agent;
     std::vector<size_t> target_idx_order;
 
-    if (cluster_idx >= -0.5) {
+    // cluster_idx >= 0, this agent has a cluster of tasks
+    if (cluster_idx >= 0) {
 
         // each agent's position
         std::vector<int> agent_position_each_agent {agent_position[2*idx_agent], agent_position[2*idx_agent+1]};
@@ -706,44 +707,45 @@ inline std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > mission_
             targets_position_each_agent[2*j+1] = targets_position[2*target_id+1];
         }
 
-        // remember to add other agents as obstacles (this is the buffered version)
-        // copy map to revise it for each thread
-        std::vector<int> MapNew = Map;
-        for (size_t idx_agent_ = 0; idx_agent_ < agent_position.size()/2; ++idx_agent_) {
-            [[likely]] if (idx_agent_ != idx_agent) {
+        constexpr bool simulationFlag = true;  // true if it's for simulations
+        // constexpr bool simulationFlag = false;  // false if it's for experiments
 
-                // buffering the surrounding cells as well
-                int x = agent_position[2*idx_agent_];
-                int y = agent_position[2*idx_agent_+1];
-
-                // for experiments
-                int half_length_x = 5;
-                int half_length_y = 5;
-
-                // for simulations
-                // int half_length_x = 1;
-                // int half_length_y = 1;
-
-                int x_min = std::max(0, x-half_length_x);
-                int x_max = std::min(mapSizeX-1, x+half_length_x);
-                int y_min = std::max(0, y-half_length_y);
-                int y_max = std::min(mapSizeY-1, y+half_length_y);
-
-                for (int idx_x = x_min; idx_x < x_max+1; ++idx_x )
-                    {
-                        for (int idx_y = y_min; idx_y < y_max+1; ++idx_y )
-                            MapNew[idx_y * mapSizeX + idx_x] = 255;
-                    }
-            }
+        if (simulationFlag) {
+            // for simulations, run it for each agent directly
+            std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > result_tuple_one_agent;
+            result_tuple_one_agent = SolveOneAgent(agent_position_each_agent, targets_position_each_agent, Map, mapSizeX, mapSizeY);
+            std::tie(path_many_each_agent, target_idx_order) = result_tuple_one_agent;
         }
+        else {
+            // for experiments, remember to add other agents as obstacles
+            std::vector<int> MapNew = Map;  // copy map to revise it for each thread
+            for (size_t idx_agent_ = 0; idx_agent_ < agent_position.size()/2; ++idx_agent_) {
+                [[likely]] if (idx_agent_ != idx_agent) {
 
-        std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > result_tuple_one_agent;
+                    // buffering the surrounding cells as well
+                    int x = agent_position[2*idx_agent_];
+                    int y = agent_position[2*idx_agent_+1];
 
-        if (num_targets_each_agent > 0) {
+                    // for experiments
+                    int half_length_x = 4;
+                    int half_length_y = 4;
+
+                    int x_min = std::max(0, x-half_length_x);
+                    int x_max = std::min(mapSizeX-1, x+half_length_x);
+                    int y_min = std::max(0, y-half_length_y);
+                    int y_max = std::min(mapSizeY-1, y+half_length_y);
+
+                    for (int idx_x = x_min; idx_x < x_max+1; ++idx_x )
+                        {
+                            for (int idx_y = y_min; idx_y < y_max+1; ++idx_y )
+                                MapNew[idx_y * mapSizeX + idx_x] = 255;
+                        }
+                }
+            }
+            std::tuple< std::vector<std::vector<int>>, std::vector<size_t> > result_tuple_one_agent;
             result_tuple_one_agent = SolveOneAgent(agent_position_each_agent, targets_position_each_agent, MapNew, mapSizeX, mapSizeY);
             std::tie(path_many_each_agent, target_idx_order) = result_tuple_one_agent;
         }
-
     }
 
     // if no tasks assigned to this agent, target_idx_order is empty vectors

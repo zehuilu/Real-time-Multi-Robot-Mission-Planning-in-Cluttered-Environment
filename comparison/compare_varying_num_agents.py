@@ -22,15 +22,15 @@ if __name__ == "__main__":
     value_non_obs = 0  # the cell is empty
     value_obs = 255  # the cell is blocked
     # number of obstacles
-    num_obs = 400
+    num_obs = 200
     # [width, length] size of each obstacle [meter]
-    size_obs = [1/map_resolution, 1/map_resolution]
+    size_obs = [1 / map_resolution, 1 / map_resolution]
 
     # fix the average number of targets per agent
     num_tasks_per_agent = 3
 
     max_num_agents = 21
-    num_run = 5
+    num_run = 100
 
     time_used_list_all_cases_my = []
     time_used_list_all_cases_cbba = []
@@ -70,14 +70,14 @@ if __name__ == "__main__":
             agent_position_1 = copy.deepcopy(agent_position)
             targets_position_1 = copy.deepcopy(targets_position)
             t0 = time.time()
-            # path_all_agents_my, _, _, _, _ =\
-            #     DrMaMP.MissionPlanning(agent_position_1, targets_position_1, num_cluster,
-            #                            number_of_iterations, world_map_1,
-            #                            MySimulator_1.map_width, MySimulator_1.map_height)
-            path_all_agents_my, task_order, cluster_centers, points_idx_for_clusters, cluster_assigned_idx = \
+            path_all_agents_my, _, _, _, _ =\
                 DrMaMP.MissionPlanning(agent_position_1, targets_position_1, num_cluster,
                                        number_of_iterations, world_map_1,
                                        MySimulator_1.map_width, MySimulator_1.map_height)
+            # path_all_agents_my, task_order, cluster_centers, points_idx_for_clusters, cluster_assigned_idx = \
+            #     DrMaMP.MissionPlanning(agent_position_1, targets_position_1, num_cluster,
+            #                            number_of_iterations, world_map_1,
+            #                            MySimulator_1.map_width, MySimulator_1.map_height)
             t1 = time.time()
             time_used_my = (t1 - t0) * 1000.0  # in millisecond
             time_used_list_single_case_my.append(time_used_my)
@@ -85,12 +85,11 @@ if __name__ == "__main__":
             distance_list_single_case_my.append(this_distance_my)
             infeasible_list_single_case_my.append(infeasible_flag_my)
 
-            if infeasible_flag_my:
-                print(path_all_agents_my)
-                MySimulator_1.plot_paths(path_all_agents_my, agent_position_1, targets_position_1, task_order,
-                    cluster_centers, points_idx_for_clusters, legend_flag=True, agent_text_flag=True,
-                    target_text_flag=True, blockFlag=True, plotFirstFigFlag=False)
-
+            # if infeasible_flag_my:
+            #     print(path_all_agents_my)
+            #     MySimulator_1.plot_paths(path_all_agents_my, agent_position_1, targets_position_1, task_order,
+            #         cluster_centers, points_idx_for_clusters, legend_flag=True, agent_text_flag=True,
+            #         target_text_flag=True, blockFlag=True, plotFirstFigFlag=False)
 
             del MySimulator_1
             del world_map_1

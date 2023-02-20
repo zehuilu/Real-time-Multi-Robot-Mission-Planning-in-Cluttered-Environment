@@ -49,7 +49,18 @@ Build
 =====
 
 This repo uses the binary package of [OR-Tools](https://developers.google.com/optimization), so you don't have to compile it by yourself. You just need to make [OR-Tools](https://developers.google.com/optimization) as a library of my codes in CMakeLists.txt (which I've done) and compile the solver.
-To install (download) [OR-Tools](https://developers.google.com/optimization) for C++ from Binary on Linux or Macos, follow the instructions [here](https://developers.google.com/optimization/install/cpp/linux) or [here](https://developers.google.com/optimization/install/cpp/mac). After you download the binary package and make sure [OR-Tools](https://developers.google.com/optimization) is working (see how to test it in Section **Run**), do the following to build C++ codes. See more details [here](https://github.com/jwdinius/ortools-with-cmake) and [here](https://github.com/google/or-tools/issues/1440) to build C++ codes by CMake with OR-Tools Binary Distribution.
+
+<!-- To install download [OR-Tools](https://developers.google.com/optimization) for C++ from Binary on Linux or Macos, follow the instructions [here](https://developers.google.com/optimization/install/cpp/linux) or [here](https://developers.google.com/optimization/install/cpp/mac). -->
+
+Note: Currently, this repo only supports OR-Tools with version up to V8.2, since OR-Tools updated significantly after V9.0 and has some backward compatibility issues. Please only download OR-Tools binary zip file [here](https://github.com/google/or-tools/releases), see the screenshot below.
+![alt text](doc/or_tools_download_screenshot_01.png)
+
+For example, in V8.2, you can choose `or-tools_MacOsX-11.2.1_v8.2.8710.tar.gz` for macOS; choose `or-tools_ubuntu-20.04_v8.2.8710.tar.gz` for Ubuntu.
+
+After you download the binary package and unzip it, make sure OR-Tools is working (see how to test it in Section **Test**). Then do the followings to build C++ codes. See more details [here](https://github.com/jwdinius/ortools-with-cmake) and [here](https://github.com/google/or-tools/issues/1440) to build C++ codes by CMake with OR-Tools Binary Distribution.
+
+<!-- Since [Lazy-Theta-with-optimization-any-angle-pathfinding](https://github.com/zehuilu/Lazy-Theta-with-optimization-any-angle-pathfinding) is a submodule of this repo, follow the instructions below to build [Lazy-Theta-with-optimization-any-angle-pathfinding](https://github.com/zehuilu/Lazy-Theta-with-optimization-any-angle-pathfinding) and this repo respectively. -->
+
 
 
 Since [Lazy-Theta-with-optimization-any-angle-pathfinding](https://github.com/zehuilu/Lazy-Theta-with-optimization-any-angle-pathfinding) is a submodule of this repo, follow the instructions below to build [Lazy-Theta-with-optimization-any-angle-pathfinding](https://github.com/zehuilu/Lazy-Theta-with-optimization-any-angle-pathfinding) and this repo respectively.

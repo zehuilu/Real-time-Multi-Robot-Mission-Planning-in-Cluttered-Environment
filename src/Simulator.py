@@ -108,14 +108,14 @@ class Simulator:
         agents = list()
         for _ in range(num_agents):
             start = [randint(1, self.map_width-1), randint(1, self.map_width-1)]
-            while self.map_array[start[1]][start[0]] != self.value_non_obs:
+            while self.checkOneCollisionWithMap(start):
                 start = [randint(1, self.map_width-1), randint(1, self.map_width-1)]
             agents.extend(start)
-        
+
         targets = list()
         for _ in range(num_targets):
             goal = [randint(1, self.map_width-1), randint(1, self.map_width-1)]
-            while (self.map_array[goal[1]][goal[0]] != self.value_non_obs) or (self.check_target_collide_agents(goal, agents)):
+            while (self.checkOneCollisionWithMap(goal)) or (self.check_target_collide_agents(goal, agents)):
                 goal = [randint(1, self.map_width-1), randint(1, self.map_width-1)]
             targets.extend(goal)
 
@@ -129,8 +129,26 @@ class Simulator:
         """
         collision_flag = False
         for idx in range(0, len(agent_positions), 2):
-            collision_flag = collision_flag or (target_position[0] == agent_positions[idx]) and (target_position[1] == agent_positions[idx+1])
+            collision_flag = collision_flag or ((target_position[0] == agent_positions[idx]) and (target_position[1] == agent_positions[idx+1]))
         return collision_flag
+
+    def checkOneCollisionWithMap(self, posiIndex):
+        """
+        Check whether a task/agent has collision with all the obstacles in map.
+
+        Inputs:
+            posiIndex: position index for the task/agent
+        
+        Outputs:
+            collisionFlag: bool, True if there exist collision
+        """
+        widthHalfIndex = 0
+        heightHalfIndex = 0
+        matShape = (widthHalfIndex * 2 + 1, heightHalfIndex * 2 + 1)
+        mat = self.map_array[posiIndex[1] - heightHalfIndex : posiIndex[1] + heightHalfIndex + 1]\
+            [:, posiIndex[0] - widthHalfIndex : posiIndex[0] + widthHalfIndex + 1]
+        collisionFlag = np.any(mat == (self.value_obs * np.ones(matShape)))
+        return collisionFlag
 
     def generate_targets(self, num_targets: int):
         '''
@@ -187,7 +205,8 @@ class Simulator:
     def plot_paths(self, path_many_agents: list, agents_position: list,
                    targets_position: list, task_order: list,
                    cluster_centers: list, points_idx_for_clusters: list,
-                   legend_flag=True, agent_text_flag=True, target_text_flag=True):
+                   legend_flag=True, agent_text_flag=True, target_text_flag=True,
+                   blockFlag=False, plotFirstFigFlag=True):
         """
         Plot many paths for multiple agents.
 
@@ -205,18 +224,19 @@ class Simulator:
         # offset to plot text in 2D space
         text_offset = (self.map_width - 0) / 40
 
-        # the first figure is without the solved path
-        realtime_flag = False
-        cluster_legend_flag = False
-        path_legend_flag = False
-        ax_before = self.create_realtime_plot(realtime_flag, cluster_legend_flag, path_legend_flag, legend_flag)
-        # plot the map
-        cmap = matplotlib.colors.ListedColormap(['white','black'])
-        ax_before.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
-        # plot agents and targets
-        self.plot_agents(agents_position, text_offset, ax_before, agent_text_flag)
-        target_color_flag = False
-        self.plot_targets(targets_position, [], [], text_offset, ax_before, target_color_flag, target_text_flag)
+        if plotFirstFigFlag:
+            # the first figure is without the solved path
+            realtime_flag = False
+            cluster_legend_flag = False
+            path_legend_flag = False
+            ax_before = self.create_realtime_plot(realtime_flag, cluster_legend_flag, path_legend_flag, legend_flag)
+            # plot the map
+            cmap = matplotlib.colors.ListedColormap(['white','black'])
+            ax_before.pcolormesh(self.map_array, cmap=cmap, edgecolors='none')
+            # plot agents and targets
+            self.plot_agents(agents_position, text_offset, ax_before, agent_text_flag)
+            target_color_flag = False
+            self.plot_targets(targets_position, [], [], text_offset, ax_before, target_color_flag, target_text_flag)
 
         # the second figure is with the solved path
         realtime_flag = False
@@ -233,7 +253,7 @@ class Simulator:
                           text_offset, ax, target_color_flag, target_text_flag)
         # plot paths
         self.plot_paths_figure(path_many_agents, agents_position, targets_position, task_order, ax)
-        plt.show(block=False)
+        plt.show(block=blockFlag)
 
     def plot_cluster_assign(self, agents_position: list, targets_position: list,
                             points_idx_for_clusters: list, cluster_centers: list,

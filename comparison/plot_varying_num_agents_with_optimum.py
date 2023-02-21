@@ -6,8 +6,13 @@ with pathmagic.context():
     import filter_comparison as helper
 
 if __name__ == "__main__":
+    # num_obs = 200
+    # num_obs = 100
+    num_obs = 50
+    # num_obs = 0
+
     # load data
-    prefix = "comparison/data/optimum_varying_num_agents_"
+    prefix = "comparison/data/" + str(num_obs) + "_optimum_varying_num_agents_"
 
     num_tasks_per_agent = int(np.genfromtxt(
         prefix+"num_tasks_per_agent.csv", delimiter=","))

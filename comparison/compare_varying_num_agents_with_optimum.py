@@ -22,8 +22,13 @@ if __name__ == "__main__":
     map_resolution = 2
     value_non_obs = 0  # the cell is empty
     value_obs = 255  # the cell is blocked
+
     # number of obstacles
-    num_obs = 200
+    # num_obs = 200
+    # num_obs = 100
+    num_obs = 50
+    # num_obs = 0
+
     # [width, length] size of each obstacle [meter]
     size_obs = [1 / map_resolution, 1 / map_resolution]
 
@@ -175,7 +180,7 @@ if __name__ == "__main__":
     print(distance_list_all_cases_os)
 
     # save data
-    prefix = "comparison/data/optimum_varying_num_agents_"
+    prefix = "comparison/data/" + str(num_obs) + "_optimum_varying_num_agents_"
 
     np.savetxt(prefix+"num_tasks_per_agent.csv", [num_tasks_per_agent], delimiter=",")
     np.savetxt(prefix+"distance_list_all_cases_cbba.csv", distance_list_all_cases_cbba, delimiter=",")

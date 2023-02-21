@@ -32,6 +32,8 @@ if __name__ == "__main__":
     max_num_agents = 21
     num_run = 100
 
+    num_per_case = 20
+
     time_used_list_all_cases_my = []
     time_used_list_all_cases_cbba = []
     distance_list_all_cases_my = []
@@ -69,27 +71,40 @@ if __name__ == "__main__":
             world_map_1 = copy.deepcopy(world_map)
             agent_position_1 = copy.deepcopy(agent_position)
             targets_position_1 = copy.deepcopy(targets_position)
-            t0 = time.time()
-            path_all_agents_my, _, _, _, _ =\
-                DrMaMP.MissionPlanning(agent_position_1, targets_position_1, num_cluster,
-                                       number_of_iterations, world_map_1,
-                                       MySimulator_1.map_width, MySimulator_1.map_height)
-            # path_all_agents_my, task_order, cluster_centers, points_idx_for_clusters, cluster_assigned_idx = \
-            #     DrMaMP.MissionPlanning(agent_position_1, targets_position_1, num_cluster,
-            #                            number_of_iterations, world_map_1,
-            #                            MySimulator_1.map_width, MySimulator_1.map_height)
-            t1 = time.time()
-            time_used_my = (t1 - t0) * 1000.0  # in millisecond
-            time_used_list_single_case_my.append(time_used_my)
-            this_distance_my, _, infeasible_flag_my = compute_path_distance_many_agents(path_all_agents_my)
-            distance_list_single_case_my.append(this_distance_my)
-            infeasible_list_single_case_my.append(infeasible_flag_my)
+            time_list_ = []
+            distance_list_ = []
+            infeasible_list_= []
+            for i in range(num_per_case):
+                t0 = time.time()
+                path_all_agents_my, _, _, _, _ =\
+                    DrMaMP.MissionPlanning(agent_position_1, targets_position_1, num_cluster,
+                                        number_of_iterations, world_map_1,
+                                        MySimulator_1.map_width, MySimulator_1.map_height)
+                # path_all_agents_my, task_order, cluster_centers, points_idx_for_clusters, cluster_assigned_idx = \
+                #     DrMaMP.MissionPlanning(agent_position_1, targets_position_1, num_cluster,
+                #                            number_of_iterations, world_map_1,
+                #                            MySimulator_1.map_width, MySimulator_1.map_height)
+                t1 = time.time()
+                time_used_my_this = (t1 - t0) * 1000.0  # in millisecond
+                this_distance_my, _, infeasible_flag_my = compute_path_distance_many_agents(path_all_agents_my)
+                if not infeasible_flag_my:
+                    time_list_.append(time_used_my_this)
+                    distance_list_.append(this_distance_my)
+                infeasible_list_.append(infeasible_flag_my)
 
-            # if infeasible_flag_my:
-            #     print(path_all_agents_my)
-            #     MySimulator_1.plot_paths(path_all_agents_my, agent_position_1, targets_position_1, task_order,
-            #         cluster_centers, points_idx_for_clusters, legend_flag=True, agent_text_flag=True,
-            #         target_text_flag=True, blockFlag=True, plotFirstFigFlag=False)
+                # if infeasible_flag_my:
+                #     print(path_all_agents_my)
+                #     MySimulator_1.plot_paths(path_all_agents_my, agent_position_1, targets_position_1, task_order,
+                #         cluster_centers, points_idx_for_clusters, legend_flag=True, agent_text_flag=True,
+                #         target_text_flag=True, blockFlag=True, plotFirstFigFlag=False)
+
+            infeasible_list_single_case_my.append(np.array(infeasible_list_).all())
+            if not (np.array(infeasible_list_).all()):
+                distance_list_single_case_my.append(np.mean(distance_list_))
+                time_used_list_single_case_my.append(np.mean(time_list_))
+            else:
+                distance_list_single_case_my.append(0.0)
+                time_used_list_single_case_my.append(0.0)
 
             del MySimulator_1
             del world_map_1
@@ -132,8 +147,8 @@ if __name__ == "__main__":
     # save data
     prefix = "comparison/data/varying_num_agents_"
     np.savetxt(prefix+"num_tasks_per_agent.csv", [num_tasks_per_agent], delimiter=",")
-    np.savetxt(prefix+"algo_time_list_cbba.csv", time_used_list_all_cases_cbba, delimiter=",")
-    np.savetxt(prefix+"algo_time_part1_list_my.csv", time_used_list_all_cases_my, delimiter=",")
+    np.savetxt(prefix+"time_used_list_all_cases_cbba.csv", time_used_list_all_cases_cbba, delimiter=",")
+    np.savetxt(prefix+"time_used_list_all_cases_my.csv", time_used_list_all_cases_my, delimiter=",")
     np.savetxt(prefix+"distance_list_all_cases_cbba.csv", distance_list_all_cases_cbba, delimiter=",")
     np.savetxt(prefix+"distance_list_all_cases_my.csv", distance_list_all_cases_my, delimiter=",")
     np.savetxt(prefix+"infeasible_list_all_cases_my.csv", infeasible_list_all_cases_my, delimiter=",")

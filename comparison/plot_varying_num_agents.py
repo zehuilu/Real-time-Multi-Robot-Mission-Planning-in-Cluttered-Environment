@@ -16,9 +16,9 @@ if __name__ == "__main__":
     num_tasks_per_agent = int(np.genfromtxt(
         prefix+"num_tasks_per_agent.csv", delimiter=","))
     _time_used_list_all_cases_cbba = np.genfromtxt(
-        prefix+"algo_time_list_cbba.csv", delimiter=",")
+        prefix+"time_used_list_all_cases_cbba.csv", delimiter=",")
     _time_used_list_all_cases_my = np.genfromtxt(
-        prefix+"algo_time_part1_list_my.csv", delimiter=",")
+        prefix+"time_used_list_all_cases_my.csv", delimiter=",")
     _distance_list_all_cases_cbba = np.genfromtxt(
         prefix+"distance_list_all_cases_cbba.csv", delimiter=",")
     _distance_list_all_cases_my = np.genfromtxt(

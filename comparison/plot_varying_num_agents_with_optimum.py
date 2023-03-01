@@ -89,6 +89,13 @@ if __name__ == "__main__":
         std_distance_cbba.append(np.std(distance_list_all_cases_cbba[idx]))
 
 
+    # compute percentage
+    print("Proposed")
+    print(np.array(mean_distance_my) / np.array(mean_distance_os))
+    print("CBBA")
+    print(np.array(mean_distance_cbba) / np.array(mean_distance_os))
+
+
     # create box plot for both algorithm
     fig1, ax1 = plt.subplots()
     ax1.set_title('Computation time, num_tasks_per_agent = ' + str(num_tasks_per_agent))

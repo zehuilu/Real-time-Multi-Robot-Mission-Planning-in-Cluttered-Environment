@@ -1,28 +1,5 @@
-# DrMaMP-Distributed-Real-time-Multi-agent-Mission-Planning-Algorithm
-This is DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment.
-
-We have already submitted our paper "DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment" to 2023 IEEE/RSJ International Conference on Intelligent Robots (IROS). The arXiv version is available at [https://arxiv.org/abs/2302.14289](https://arxiv.org/abs/2302.14289).
-
-If you think this project is helpful, please cite us.
-```
-@misc{https://doi.org/10.48550/arxiv.2302.14289,
-  doi = {10.48550/ARXIV.2302.14289},
-  
-  url = {https://arxiv.org/abs/2302.14289},
-  
-  author = {Lu, Zehui and Zhou, Tianyu and Mou, Shaoshuai},
-  
-  keywords = {Robotics (cs.RO), Multiagent Systems (cs.MA), FOS: Computer and information sciences, FOS: Computer and information sciences},
-  
-  title = {DrMaMP: Distributed Real-time Multi-agent Mission Planning in Cluttered Environment},
-  
-  publisher = {arXiv},
-  
-  year = {2023},
-  
-  copyright = {Creative Commons Attribution 4.0 International}
-}
-```
+# Real-time Parallel Multi-Agent Mission Planning in Cluttered Environment
+This is GitHub repo for Real-time Parallel Multi-Agent Mission Planning in Cluttered Environment.
 
 
 This repo has been tested with:
@@ -54,7 +31,7 @@ Dependencies
 
 For experiments **ONLY**:
 
-This repo uses two Parrot Mambo quadrotors to do the experiments. To control these quadrotors based on results from DrMaMP, you need to download and install the following repository by the instructions.
+This repo uses two Parrot Mambo quadrotors to do the experiments. To control these quadrotors based on results from RPMAMP, you need to download and install the following repository by the instructions.
 * [Mambo-Tracking-Interface](https://github.com/zehuilu/Mambo-Tracking-Interface)
 
 For comparisons **ONLY**:
@@ -93,7 +70,7 @@ $ sudo apt install build-essential zlib1g-dev # For macOS: xcode-select --instal
 $ sudo apt install libgflags-dev libgoogle-glog-dev # For macOS: brew install gflags glog
 $ apt install python3-pybind11 # For macOS: brew install pybind11
 $ pip3 install numpy matplotlib scipy
-$ git clone https://github.com/zehuilu/DrMaMP-Distributed-Real-time-Multi-agent-Mission-Planning-Algorithm.git
+$ git clone https://github.com/zehuilu/Real-time-Parallel-Multi-Agent-Mission-Planning-in-Cluttered-Environment.git
 $ cd <MAIN_DIRECTORY>
 $ git submodule update --init --recursive
 $ cd externals/Lazy-Theta-with-optimization-any-angle-pathfinding

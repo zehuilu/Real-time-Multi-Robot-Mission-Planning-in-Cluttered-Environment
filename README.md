@@ -1,5 +1,5 @@
-# Real-time Parallel Multi-Agent Mission Planning in Cluttered Environment
-This is GitHub repo for Real-time Parallel Multi-Agent Mission Planning in Cluttered Environment.
+# Real-time Parallel Multi-Robot Mission Planning in Cluttered Environment
+This is GitHub repo for Real-time Parallel Multi-Robot Mission Planning in Cluttered Environment.
 
 
 This repo has been tested with:
@@ -31,7 +31,7 @@ Dependencies
 
 For experiments **ONLY**:
 
-This repo uses two Parrot Mambo quadrotors to do the experiments. To control these quadrotors based on results from RPMAMP, you need to download and install the following repository by the instructions.
+This repo uses two Parrot Mambo quadrotors to do the experiments. To control these quadrotors based on results from RPM, you need to download and install the following repository by the instructions.
 * [Mambo-Tracking-Interface](https://github.com/zehuilu/Mambo-Tracking-Interface)
 
 For comparisons **ONLY**:
@@ -70,7 +70,7 @@ $ sudo apt install build-essential zlib1g-dev # For macOS: xcode-select --instal
 $ sudo apt install libgflags-dev libgoogle-glog-dev # For macOS: brew install gflags glog
 $ apt install python3-pybind11 # For macOS: brew install pybind11
 $ pip3 install numpy matplotlib scipy
-$ git clone https://github.com/zehuilu/Real-time-Parallel-Multi-Agent-Mission-Planning-in-Cluttered-Environment.git
+$ git clone https://github.com/zehuilu/Real-time-Parallel-Multi-Robot-Mission-Planning-in-Cluttered-Environment.git
 $ cd <MAIN_DIRECTORY>
 $ git submodule update --init --recursive
 $ cd externals/Lazy-Theta-with-optimization-any-angle-pathfinding

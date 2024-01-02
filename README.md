@@ -1,5 +1,5 @@
-# Real-time Parallel Multi-Robot Mission Planning in Cluttered Environment
-This is GitHub repo for Real-time Parallel Multi-Robot Mission Planning in Cluttered Environment.
+# Real-time Multi-Robot Mission Planning in Cluttered Environment
+This is GitHub repo for Real-time Multi-Robot Mission Planning in Cluttered Environment.
 
 
 This repo has been tested with:

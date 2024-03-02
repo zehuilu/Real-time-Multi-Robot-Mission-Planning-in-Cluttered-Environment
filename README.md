@@ -1,6 +1,23 @@
 # Real-time Multi-Robot Mission Planning in Cluttered Environment
 This is GitHub repo for Real-time Multi-Robot Mission Planning in Cluttered Environment.
 
+Our paper is available free-of-charge at [https://www.mdpi.com/2218-6581/13/3/40](https://www.mdpi.com/2218-6581/13/3/40).
+Please cite us:
+```
+@Article{robotics13030040,
+AUTHOR = {Lu, Zehui and Zhou, Tianyu and Mou, Shaoshuai},
+TITLE = {Real-Time Multi-Robot Mission Planning in Cluttered Environment},
+JOURNAL = {Robotics},
+VOLUME = {13},
+YEAR = {2024},
+NUMBER = {3},
+ARTICLE-NUMBER = {40},
+URL = {https://www.mdpi.com/2218-6581/13/3/40},
+ISSN = {2218-6581},
+DOI = {10.3390/robotics13030040}
+}
+```
+
 
 This repo has been tested with:
 * GCC 10.2.0, CMake 3.16.3, Ubuntu 20.04.2 LTS
